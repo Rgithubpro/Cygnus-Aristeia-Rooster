@@ -1,5 +1,5 @@
 {
-  "active": false,
-  "title": "Onderhoud",
-  "message": "De database kan tijdelijk offline zijn voor een update. Bepaalde functies zoals je rooster zien en info werken mogelijk niet."
+  "active": true,
+  "title": "Database offline",
+  "message": "We hebben Aristeia gewonnen! De database is offline en zal bij Aristeia 2027 pas weer online gaan. Tot dan!"
 }
