@@ -90,3 +90,53 @@ h2 { font-family: var(--serif); font-size: 1.35rem; font-weight: 700; }
   .lesson { grid-template-columns: 1fr auto; }
   .time { grid-column: 1 / -1; }
 }
+
+/* ---------- app screens ---------- */
+.grow { flex: 1; min-width: 0; }
+.head h1 { font-size: 1.5rem; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 0.75rem; padding: 1rem; }
+.stack { display: grid; gap: 1rem; }
+.klein-gap { gap: 0.35rem; }
+.lijst-los { list-style: none; }
+.rij { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+.rij.tussen { justify-content: space-between; flex-wrap: nowrap; }
+h3 { font-family: var(--serif); font-size: 1.1rem; }
+
+.veld { display: grid; gap: 0.3rem; border: 0; }
+.veld > span, .veld > legend { font-weight: 600; font-size: 0.95rem; }
+input, select, textarea {
+  font: inherit; font-size: 1rem; color: var(--ink); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 0.5rem; padding: 0.65rem 0.75rem; width: 100%; min-height: 2.75rem;
+}
+textarea { resize: vertical; }
+input[type="checkbox"] { width: 1.25rem; min-height: 1.25rem; height: 1.25rem; accent-color: var(--accent); }
+
+.btn {
+  font: inherit; font-weight: 700; cursor: pointer; min-height: 2.75rem; padding: 0.6rem 1.1rem;
+  border-radius: 0.6rem; border: 1px solid var(--accent); background: var(--accent); color: #fff;
+}
+@media (prefers-color-scheme: dark) { .btn { color: #0e1426; } }
+.btn:disabled { opacity: 0.5; cursor: default; }
+.btn.ghost { background: transparent; color: var(--accent); }
+.btn.danger { background: transparent; color: var(--cancelled); border-color: var(--cancelled); }
+.btn.klein { min-height: 2.25rem; padding: 0.3rem 0.75rem; font-size: 0.9rem; }
+
+.fout { color: var(--cancelled); background: var(--cancelled-bg); border-radius: 0.5rem; padding: 0.6rem 0.8rem; font-weight: 600; }
+
+.segment { display: flex; gap: 0.25rem; background: var(--surface); border: 1px solid var(--line); border-radius: 0.7rem; padding: 0.25rem; }
+.segment button {
+  flex: 1; font: inherit; font-size: 0.9rem; font-weight: 600; cursor: pointer; min-height: 2.5rem;
+  border: 0; border-radius: 0.5rem; background: transparent; color: var(--ink2);
+}
+.segment button[aria-selected="true"] { background: var(--accent); color: #fff; }
+@media (prefers-color-scheme: dark) { .segment button[aria-selected="true"] { color: #0e1426; } }
+
+.keuzelijst { list-style: none; display: grid; gap: 0.4rem; }
+.keuzelijst > li:not(:has(button.keuze)) { background: var(--surface); border: 1px solid var(--line); border-radius: 0.6rem; padding: 0.4rem 0.4rem 0.4rem 0.9rem; }
+.keuze {
+  width: 100%; text-align: left; font: inherit; cursor: pointer; min-height: 2.9rem; padding: 0.6rem 0.9rem;
+  background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 0.6rem;
+}
+
+.vinklijst { list-style: none; display: grid; gap: 0.1rem; margin-top: 0.5rem; max-height: 18rem; overflow: auto; }
+.vinklijst label { display: flex; gap: 0.7rem; align-items: center; min-height: 2.5rem; cursor: pointer; }

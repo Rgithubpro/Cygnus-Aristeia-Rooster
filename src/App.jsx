@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react'
+import { isGeconfigureerd } from './config.js'
+import { rpc, setBijOngeldigeSessie } from './api.js'
+import { laadSessie, bewaarSessie, wisAlles } from './session.js'
 import { nl } from './strings.js'
 import Mark from './Mark.jsx'
-
-// Placeholder rows, only to show what the real schedule will look like.
-const EXAMPLE = [
-  { time: '08:30 – 09:20', subject: 'Wiskunde', room: 'B2.14', teacher: 'Mevr. De Vries', status: null },
-  { time: '09:20 – 10:10', subject: 'Nederlands', room: 'A1.05 (was A1.03)', teacher: 'Dhr. Bakker', status: 'moved' },
-  { time: '10:30 – 11:20', subject: 'Gym', room: 'Sporthal', teacher: 'Dhr. Jansen', status: 'cancelled' },
-]
-
-const BADGE = { moved: nl.badgeMoved, cancelled: nl.badgeCancelled }
+import Login from './Login.jsx'
+import KiesNaam from './KiesNaam.jsx'
+import Rooster from './Rooster.jsx'
+import Klas from './Klas.jsx'
+import Mededelingen from './Mededelingen.jsx'
+import Beheer from './Beheer.jsx'
 
 function useOnline() {
   const [online, setOnline] = useState(() => navigator.onLine)
@@ -26,76 +26,134 @@ function useOnline() {
   return online
 }
 
-function isInstalled() {
-  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true
+function Kop({ klas, onUitloggen }) {
+  return (
+    <header className="head">
+      <Mark size={44} />
+      <div className="grow">
+        <h1>{nl.title}</h1>
+        <p className="tagline">{klas ? klas.naam : nl.tagline}</p>
+      </div>
+      {onUitloggen && (
+        <button className="btn ghost klein" onClick={onUitloggen}>
+          {nl.uitloggen}
+        </button>
+      )}
+    </header>
+  )
 }
-
-const buildDate = new Intl.DateTimeFormat('nl-NL', {
-  dateStyle: 'medium',
-  timeStyle: 'short',
-  timeZone: 'Europe/Amsterdam',
-}).format(new Date(__BUILD_TIME__))
 
 export default function App() {
   const online = useOnline()
+  const [sessie, setSessie] = useState(() => laadSessie())
+  const [tab, setTab] = useState('rooster')
+
+  useEffect(() => {
+    setBijOngeldigeSessie(() => {
+      wisAlles()
+      setSessie(null)
+    })
+  }, [])
+
+  // Check that the stored session is still valid (it also restores the chosen name).
+  useEffect(() => {
+    if (!sessie?.token || !isGeconfigureerd()) return
+    rpc('mijn_sessie', { p_token: sessie.token })
+      .then((s) => {
+        if (s.leerling_id && s.leerling_id !== sessie.leerlingId) update({ ...sessie, leerlingId: s.leerling_id })
+      })
+      .catch(() => {})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  function update(nieuw) {
+    bewaarSessie(nieuw)
+    setSessie(nieuw)
+  }
+
+  async function uitloggen() {
+    try {
+      await rpc('uitloggen', { p_token: sessie.token })
+    } catch {
+      /* offline: still log out on this device */
+    }
+    wisAlles()
+    setSessie(null)
+    setTab('rooster')
+  }
+
+  if (!isGeconfigureerd()) {
+    return (
+      <main className="page">
+        <Kop />
+        <div className="card stack">
+          <h2>{nl.setupTitel}</h2>
+          <p>{nl.setupTekst}</p>
+        </div>
+      </main>
+    )
+  }
+
+  const banner = !online && (
+    <p className="banner" role="status">
+      {nl.offlineBanner}
+    </p>
+  )
+
+  if (!sessie) {
+    return (
+      <main className="page">
+        <Kop />
+        {banner}
+        <Login onKlaar={update} />
+      </main>
+    )
+  }
+
+  const moetNaamKiezen = !sessie.leerlingId && !sessie.naamOvergeslagen
+  if (moetNaamKiezen) {
+    return (
+      <main className="page">
+        <Kop klas={sessie.klas} onUitloggen={uitloggen} />
+        {banner}
+        <KiesNaam sessie={sessie} onKlaar={update} />
+      </main>
+    )
+  }
+
+  const tabs = [
+    ['rooster', nl.tabRooster],
+    ['klas', nl.tabKlas],
+    ['mededelingen', nl.tabMededelingen],
+    ...(sessie.rol === 'beheer' ? [['beheer', nl.tabBeheer]] : []),
+  ]
 
   return (
     <main className="page">
-      <header className="head">
-        <Mark />
-        <div>
-          <h1>{nl.title}</h1>
-          <p className="tagline">{nl.tagline}</p>
-        </div>
-      </header>
+      <Kop klas={sessie.klas} onUitloggen={uitloggen} />
+      {banner}
+      <nav className="segment" role="tablist">
+        {tabs.map(([id, label]) => (
+          <button key={id} role="tab" aria-selected={tab === id} onClick={() => setTab(id)}>
+            {label}
+          </button>
+        ))}
+      </nav>
 
-      {!online && (
-        <p className="banner" role="status">
-          {nl.offlineBanner}
-        </p>
-      )}
-
-      <section aria-labelledby="today">
-        <div className="section-head">
-          <h2 id="today">{nl.todayHeading}</h2>
-          <span className="tag">{nl.exampleTag}</span>
-        </div>
-        <ol className="lessons">
-          {EXAMPLE.map((l) => (
-            <li key={l.time} className={l.status ? `lesson ${l.status}` : 'lesson'}>
-              <span className="time">{l.time}</span>
-              <span className="what">
-                <strong>{l.subject}</strong>
-                <span className="meta">
-                  {l.room}, {l.teacher}
-                </span>
-              </span>
-              {l.status && <span className={`badge ${l.status}`}>{BADGE[l.status]}</span>}
-            </li>
-          ))}
-        </ol>
-        <p className="note">{nl.exampleNote}</p>
-      </section>
-
-      <section aria-labelledby="status">
-        <h2 id="status">{nl.statusHeading}</h2>
-        <dl className="status">
-          <div>
-            <dt>{nl.connection}</dt>
-            <dd>{online ? nl.online : nl.offline}</dd>
+      {tab === 'rooster' &&
+        (sessie.leerlingId ? (
+          <Rooster sessie={sessie} leerlingId={sessie.leerlingId} />
+        ) : (
+          <div className="stack">
+            <p className="note">{nl.geenNaamGekozen}</p>
+            <button className="btn" onClick={() => update({ ...sessie, naamOvergeslagen: false })}>
+              {nl.kiesNaam}
+            </button>
           </div>
-          <div>
-            <dt>{nl.installed}</dt>
-            <dd>{isInstalled() ? nl.yes : nl.no}</dd>
-          </div>
-          <div>
-            <dt>{nl.version}</dt>
-            <dd>
-              {__COMMIT__}, {buildDate}
-            </dd>
-          </div>
-        </dl>
-      </section>
+        ))}
+      {tab === 'klas' && <Klas sessie={sessie} />}
+      {tab === 'mededelingen' && <Mededelingen sessie={sessie} />}
+      {tab === 'beheer' && sessie.rol === 'beheer' && <Beheer sessie={sessie} />}
     </main>
   )
 }

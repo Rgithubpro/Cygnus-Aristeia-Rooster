@@ -17,9 +17,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Aristeia Rooster',
-        short_name: 'Rooster',
-        description: 'Je rooster voor vandaag en morgen.',
+        name: 'Klassenstrijd',
+        short_name: 'Klassenstrijd',
+        description: 'Jouw rooster voor de klassenstrijd.',
         lang: 'nl',
         start_url: '/',
         scope: '/',
