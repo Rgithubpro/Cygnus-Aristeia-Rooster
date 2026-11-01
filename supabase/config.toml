@@ -1,0 +1,4 @@
+# Used by the Supabase CLI. The push function checks its own credentials
+# (cron secret, Root login or class admin session), so gateway JWT checking is off.
+[functions.push]
+verify_jwt = false

@@ -11,6 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          curl -fsS -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/klassen_lijst" \
+          curl -fsS -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/start_info" \
             -H "apikey: ${{ secrets.SUPABASE_KEY }}" \
             -H "Content-Type: application/json" -d '{}'

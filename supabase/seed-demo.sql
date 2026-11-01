@@ -1,23 +1,28 @@
--- Demo class for testing. DELETE it before real use:  delete from public.klassen where slug = 'demo';
--- Link: /k/demo   Leerling password: leerling-demo   Beheer password: beheer-demo
-select public.maak_klas('Demo', 'demo', 'leerling-demo', 'beheer-demo');
+-- Demo data for testing. Remove before real use:  delete from public.klassen where slug in ('demo', 'demo2');
+-- Demo   (/k/demo):   leerling-demo  /  beheer-demo
+-- Demo 2 (/k/demo2):  leerling-demo2 /  beheer-demo2
+update public.instellingen set dag1 = current_date, dag2 = current_date + 1 where id = 1;
 
-insert into public.leerlingen (klas_id, naam)
-select k.id, n from public.klassen k, unnest(array['Anna de Vries', 'Bram Jansen', 'Chloë Bakker', 'Daan Visser']) as n
-where k.slug = 'demo';
+select public._maak_klas('Demo', 'demo', 'leerling-demo', 'beheer-demo');
+select public._maak_klas('Demo 2', 'demo2', 'leerling-demo2', 'beheer-demo2');
 
-with k as (select id from public.klassen where slug = 'demo'),
-a as (
-  insert into public.activiteiten (klas_id, titel, dag, start, eind, locatie, omschrijving)
-  select k.id, v.titel, v.dag, v.start::time, v.eind::time, v.locatie, v.omschrijving
-  from k, (values
-    ('Voetbal', 1, '10:00', '10:45', 'Veld 2', 'Poule A tegen 3B'),
-    ('Estafette', 1, '13:00', '13:30', 'Atletiekbaan', '')
-  ) as v(titel, dag, start, eind, locatie, omschrijving)
-  returning id, titel
-)
-insert into public.deelnames (activiteit_id, leerling_id)
-select a.id, l.id
-from a join public.leerlingen l on l.klas_id = (select id from k)
-where (a.titel = 'Voetbal' and l.naam in ('Anna de Vries', 'Bram Jansen'))
-   or (a.titel = 'Estafette' and l.naam in ('Anna de Vries', 'Chloë Bakker', 'Daan Visser'));
+select public._leerlingen_toevoegen(id, E'Anna de Vries\nBram Jansen\nChloë Bakker\nDaan Visser') from public.klassen where slug = 'demo';
+select public._leerlingen_toevoegen(id, E'Eva Mulder\nFinn Smit\nGijs de Boer') from public.klassen where slug = 'demo2';
+
+select public._activiteit_opslaan(null, null, 'Opening', 1, '09:00', '09:30', 'Aula', 'Welkom bij de klassenstrijd!', 'paars', '{}');
+select public._activiteit_opslaan(null, null, 'Prijsuitreiking', 2, '15:00', '15:45', 'Aula', '', 'amber', '{}');
+
+select public._activiteit_opslaan(k.id, null, 'Voetbal', 1, '10:00', '10:45', 'Veld 2', 'Poule A', 'groen',
+         array(select id from public.leerlingen where klas_id = k.id and naam in ('Anna de Vries', 'Bram Jansen')))
+  from public.klassen k where k.slug = 'demo';
+select public._activiteit_opslaan(k.id, null, 'Estafette', 1, '13:00', '13:30', 'Atletiekbaan', '', 'koraal',
+         array(select id from public.leerlingen where klas_id = k.id and naam in ('Anna de Vries', 'Chloë Bakker', 'Daan Visser')))
+  from public.klassen k where k.slug = 'demo';
+
+select public._dagbericht_zetten(null, 1, '08:45 aanwezig zijn in de aula');
+
+insert into public.berichten (klas_id, titel, tekst)
+values (null, 'Welkom!', E'Dit is een testbericht voor iedereen.\nMeer info: https://example.com');
+
+insert into public.punten (klas_id, dag, onderdeel, punten)
+select id, 1, 'Voetbal', case slug when 'demo' then 10 else 7 end from public.klassen where slug in ('demo', 'demo2');

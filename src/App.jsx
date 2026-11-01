@@ -1,15 +1,22 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { isGeconfigureerd } from './config.js'
 import { rpc, setBijOngeldigeSessie } from './api.js'
 import { laadSessie, bewaarSessie, wisAlles } from './session.js'
+import { DataProvider, useData } from './data.jsx'
+import { herregistreer } from './push.js'
 import { nl } from './strings.js'
 import Mark from './Mark.jsx'
+import Banner from './Banner.jsx'
 import Login from './Login.jsx'
 import KiesNaam from './KiesNaam.jsx'
 import Rooster from './Rooster.jsx'
-import Klas from './Klas.jsx'
-import Mededelingen from './Mededelingen.jsx'
+import Info from './Info.jsx'
+import Stand from './Stand.jsx'
+import Meldingen from './Meldingen.jsx'
 import Beheer from './Beheer.jsx'
+
+// The Root panel (and the Supabase login library) is only downloaded on /root.
+const RootApp = lazy(() => import('./root/RootApp.jsx'))
 
 function useOnline() {
   const [online, setOnline] = useState(() => navigator.onLine)
@@ -44,26 +51,36 @@ function Kop({ klas, onUitloggen }) {
 }
 
 export default function App() {
+  if (!isGeconfigureerd()) {
+    return (
+      <main className="page">
+        <Kop />
+        <div className="card stack">
+          <h2>{nl.setupTitel}</h2>
+          <p>{nl.setupTekst}</p>
+        </div>
+      </main>
+    )
+  }
+  if (location.pathname.startsWith('/root')) {
+    return (
+      <Suspense fallback={<main className="page"><p className="note">{nl.laden}</p></main>}>
+        <RootApp />
+      </Suspense>
+    )
+  }
+  return <LeerlingApp />
+}
+
+function LeerlingApp() {
   const online = useOnline()
-  const [sessie, setSessie] = useState(() => laadSessie())
-  const [tab, setTab] = useState('rooster')
+  const [sessie, setSessie] = useState(laadSessie)
 
   useEffect(() => {
     setBijOngeldigeSessie(() => {
       wisAlles()
       setSessie(null)
     })
-  }, [])
-
-  // Check that the stored session is still valid (it also restores the chosen name).
-  useEffect(() => {
-    if (!sessie?.token || !isGeconfigureerd()) return
-    rpc('mijn_sessie', { p_token: sessie.token })
-      .then((s) => {
-        if (s.leerling_id && s.leerling_id !== sessie.leerlingId) update({ ...sessie, leerlingId: s.leerling_id })
-      })
-      .catch(() => {})
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function update(nieuw) {
@@ -79,22 +96,9 @@ export default function App() {
     }
     wisAlles()
     setSessie(null)
-    setTab('rooster')
   }
 
-  if (!isGeconfigureerd()) {
-    return (
-      <main className="page">
-        <Kop />
-        <div className="card stack">
-          <h2>{nl.setupTitel}</h2>
-          <p>{nl.setupTekst}</p>
-        </div>
-      </main>
-    )
-  }
-
-  const banner = !online && (
+  const offline = !online && (
     <p className="banner" role="status">
       {nl.offlineBanner}
     </p>
@@ -104,34 +108,87 @@ export default function App() {
     return (
       <main className="page">
         <Kop />
-        {banner}
+        {offline}
         <Login onKlaar={update} />
       </main>
     )
   }
 
-  const moetNaamKiezen = !sessie.leerlingId && !sessie.naamOvergeslagen
-  if (moetNaamKiezen) {
+  return (
+    <DataProvider sessie={sessie}>
+      <Shell sessie={sessie} update={update} uitloggen={uitloggen} offline={offline} />
+    </DataProvider>
+  )
+}
+
+function Shell({ sessie, update, uitloggen, offline }) {
+  const { data, fout } = useData()
+  const [tab, setTab] = useState('rooster')
+  const [kiesOpnieuw, setKiesOpnieuw] = useState(false)
+  const [meldingen, setMeldingen] = useState(false)
+  const leerlingId = data?.leerling_id ?? sessie.leerlingId
+
+  // keep this device linked to the right student for notifications
+  useEffect(() => {
+    if (leerlingId) herregistreer(sessie.token)
+  }, [leerlingId, sessie.token])
+
+  const klas = data?.klas ?? sessie.klas
+
+  if (!data) {
     return (
       <main className="page">
-        <Kop klas={sessie.klas} onUitloggen={uitloggen} />
-        {banner}
-        <KiesNaam sessie={sessie} onKlaar={update} />
+        <Kop klas={klas} onUitloggen={uitloggen} />
+        {offline}
+        <p className="note">{fout ? nl.laadFout : nl.laden}</p>
+      </main>
+    )
+  }
+
+  const moetNaamKiezen = !leerlingId && !sessie.naamOvergeslagen
+  if (moetNaamKiezen || kiesOpnieuw) {
+    return (
+      <main className="page">
+        <Kop klas={klas} onUitloggen={uitloggen} />
+        {offline}
+        <KiesNaam
+          sessie={sessie}
+          onKlaar={(s) => {
+            update(s)
+            setKiesOpnieuw(false)
+          }}
+          onAnnuleer={kiesOpnieuw ? () => setKiesOpnieuw(false) : undefined}
+        />
       </main>
     )
   }
 
   const tabs = [
     ['rooster', nl.tabRooster],
-    ['klas', nl.tabKlas],
-    ['mededelingen', nl.tabMededelingen],
+    ['info', nl.tabInfo],
+    ['stand', nl.tabStand],
     ...(sessie.rol === 'beheer' ? [['beheer', nl.tabBeheer]] : []),
   ]
 
   return (
     <main className="page">
-      <Kop klas={sessie.klas} onUitloggen={uitloggen} />
-      {banner}
+      <Kop klas={klas} onUitloggen={uitloggen} />
+      <Banner banner={data.instellingen.banner} />
+      {offline}
+      <div className="rij">
+        <button className="btn ghost klein" onClick={() => setMeldingen(true)}>
+          🔔 {nl.meldingen}
+        </button>
+        {leerlingId && (
+          <button
+            className="btn ghost klein"
+            onClick={() => window.confirm(nl.zekerAnderPersoon) && setKiesOpnieuw(true)}
+          >
+            {nl.anderPersoon}
+          </button>
+        )}
+      </div>
+
       <nav className="segment" role="tablist">
         {tabs.map(([id, label]) => (
           <button key={id} role="tab" aria-selected={tab === id} onClick={() => setTab(id)}>
@@ -140,20 +197,12 @@ export default function App() {
         ))}
       </nav>
 
-      {tab === 'rooster' &&
-        (sessie.leerlingId ? (
-          <Rooster sessie={sessie} leerlingId={sessie.leerlingId} />
-        ) : (
-          <div className="stack">
-            <p className="note">{nl.geenNaamGekozen}</p>
-            <button className="btn" onClick={() => update({ ...sessie, naamOvergeslagen: false })}>
-              {nl.kiesNaam}
-            </button>
-          </div>
-        ))}
-      {tab === 'klas' && <Klas sessie={sessie} />}
-      {tab === 'mededelingen' && <Mededelingen sessie={sessie} />}
+      {tab === 'rooster' && <Rooster />}
+      {tab === 'info' && <Info />}
+      {tab === 'stand' && <Stand sessie={sessie} />}
       {tab === 'beheer' && sessie.rol === 'beheer' && <Beheer sessie={sessie} />}
+
+      {meldingen && <Meldingen sessie={sessie} leerlingId={leerlingId} onSluit={() => setMeldingen(false)} />}
     </main>
   )
 }

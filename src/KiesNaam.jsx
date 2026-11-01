@@ -1,18 +1,19 @@
 import { useState } from 'react'
 import { rpc } from './api.js'
-import { useLive } from './hooks.js'
+import { useData } from './data.jsx'
 import { nl } from './strings.js'
 
-export default function KiesNaam({ sessie, onKlaar }) {
+export default function KiesNaam({ sessie, onKlaar, onAnnuleer }) {
+  const { data, ververs } = useData()
   const [zoek, setZoek] = useState('')
   const [gekozen, setGekozen] = useState(null)
   const [fout, setFout] = useState('')
-  const { data: leerlingen } = useLive('leerlingen', () => rpc('leerlingen_van_klas', { p_token: sessie.token }), [], 120000)
 
   async function bevestig() {
     setFout('')
     try {
       await rpc('kies_leerling', { p_token: sessie.token, p_leerling_id: gekozen.id })
+      await ververs()
       onKlaar({ ...sessie, leerlingId: gekozen.id })
     } catch {
       setFout(nl.laadFout)
@@ -36,18 +37,15 @@ export default function KiesNaam({ sessie, onKlaar }) {
     )
   }
 
+  const leerlingen = data?.leerlingen
   const lijst = (leerlingen || []).filter((l) => l.naam.toLowerCase().includes(zoek.toLowerCase()))
 
   return (
     <div className="card stack">
       <h2>{nl.wieBenJij}</h2>
-      <input
-        type="search"
-        placeholder={nl.zoekNaam}
-        value={zoek}
-        onChange={(e) => setZoek(e.target.value)}
-        aria-label={nl.zoekNaam}
-      />
+      <p className="note">{nl.naamWaarschuwing}</p>
+      <input type="search" placeholder={nl.zoekNaam} value={zoek} onChange={(e) => setZoek(e.target.value)} aria-label={nl.zoekNaam} />
+      {!leerlingen && <p className="note">{nl.laden}</p>}
       {leerlingen && leerlingen.length === 0 && <p className="note">{nl.geenLeerlingen}</p>}
       <ul className="keuzelijst">
         {lijst.map((l) => (
@@ -58,9 +56,14 @@ export default function KiesNaam({ sessie, onKlaar }) {
           </li>
         ))}
       </ul>
-      {sessie.rol === 'beheer' && (
+      {sessie.rol === 'beheer' && !onAnnuleer && (
         <button className="btn ghost" onClick={() => onKlaar({ ...sessie, naamOvergeslagen: true })}>
           {nl.overslaan}
+        </button>
+      )}
+      {onAnnuleer && (
+        <button className="btn ghost" onClick={onAnnuleer}>
+          {nl.annuleren}
         </button>
       )}
     </div>

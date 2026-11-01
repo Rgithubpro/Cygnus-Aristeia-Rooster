@@ -2,8 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// Cloudflare Workers Builds sets this on every build, so the app can show
-// which commit is live. Locally it falls back to "lokaal".
+// Cloudflare Workers Builds sets this on every build, so the app can show which commit is live.
 const commit = (process.env.WORKERS_CI_COMMIT_SHA || '').slice(0, 7) || 'lokaal'
 
 export default defineConfig({
@@ -14,8 +13,12 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      strategies: 'injectManifest', // custom service worker (src/sw.js) for push notifications
+      srcDir: 'src',
+      filename: 'sw.js',
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
+      injectManifest: { globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'] },
       manifest: {
         name: 'Klassenstrijd',
         short_name: 'Klassenstrijd',
@@ -31,10 +34,6 @@ export default defineConfig({
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
           { src: 'icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
-      },
-      workbox: {
-        navigateFallback: '/index.html',
-        cleanupOutdatedCaches: true,
       },
     }),
   ],

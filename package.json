@@ -1,7 +1,7 @@
 {
   "name": "cygnus-aristeia-rooster",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "license": "MIT",
   "engines": { "node": ">=20" },
@@ -12,8 +12,13 @@
     "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "qrcode": "^1.5.4",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "workbox-core": "^7.3.0",
+    "workbox-precaching": "^7.3.0",
+    "workbox-routing": "^7.3.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^5.0.0",

@@ -1,20 +1,26 @@
 import { useState } from 'react'
 import { rpc } from './api.js'
-import { useLive } from './hooks.js'
+import { useData } from './data.jsx'
 import { nl } from './strings.js'
-
-const LEEG = { id: null, titel: '', dag: 1, start: '09:00', eind: '09:45', locatie: '', omschrijving: '', leerlingen: [] }
+import { dagDatum, dagLabel } from './util.js'
+import ActiviteitForm, { LEEG } from './ActiviteitForm.jsx'
+import BeheerLeerlingen from './BeheerLeerlingen.jsx'
+import BeheerInfo from './BeheerInfo.jsx'
+import BeheerPush from './BeheerPush.jsx'
 
 export default function Beheer({ sessie }) {
   const [deel, setDeel] = useState('activiteiten')
+  const { ververs } = useData()
   const delen = [
     ['activiteiten', nl.activiteiten],
     ['leerlingen', nl.leerlingen],
-    ['mededelingen', nl.mededelingen],
+    ['dagberichten', nl.dagberichten],
+    ['info', nl.info],
+    ['meldingen', nl.meldingen],
   ]
   return (
     <div className="stack">
-      <div className="segment" role="tablist">
+      <div className="segment scroll" role="tablist">
         {delen.map(([id, label]) => (
           <button key={id} role="tab" aria-selected={deel === id} onClick={() => setDeel(id)}>
             {label}
@@ -22,28 +28,44 @@ export default function Beheer({ sessie }) {
         ))}
       </div>
       {deel === 'activiteiten' && <Activiteiten sessie={sessie} />}
-      {deel === 'leerlingen' && <Leerlingen sessie={sessie} />}
-      {deel === 'mededelingen' && <MededelingenBeheer sessie={sessie} />}
+      {deel === 'leerlingen' && <BeheerLeerlingen sessie={sessie} />}
+      {deel === 'dagberichten' && <Dagberichten sessie={sessie} />}
+      {deel === 'info' && <BeheerInfo sessie={sessie} />}
+      {deel === 'meldingen' && <BeheerPush sessie={sessie} />}
+      <button className="btn ghost klein" onClick={ververs}>
+        ↻ {nl.verversen}
+      </button>
     </div>
   )
 }
 
-/* ---------- activiteiten ---------- */
-
 function Activiteiten({ sessie }) {
+  const { data, ververs } = useData()
   const [bewerk, setBewerk] = useState(null)
-  const { data: acts, herlaad } = useLive('beheer.activiteiten', () => rpc('activiteiten_van_klas', { p_token: sessie.token }), [], 30000)
-  const { data: leerlingen } = useLive('leerlingen', () => rpc('leerlingen_van_klas', { p_token: sessie.token }), [], 120000)
 
   if (bewerk) {
     return (
       <ActiviteitForm
-        sessie={sessie}
         startwaarde={bewerk}
-        leerlingen={leerlingen || []}
-        onKlaar={() => {
+        leerlingen={data.leerlingen}
+        anderen={data.activiteiten}
+        opslaan={(f) =>
+          rpc('activiteit_opslaan', {
+            p_token: sessie.token,
+            p_id: f.id,
+            p_titel: f.titel,
+            p_dag: f.dag,
+            p_start: f.start,
+            p_eind: f.eind,
+            p_locatie: f.locatie,
+            p_omschrijving: f.omschrijving,
+            p_kleur: f.kleur,
+            p_leerlingen: f.leerlingen,
+          })
+        }
+        onKlaar={async () => {
+          await ververs()
           setBewerk(null)
-          herlaad()
         }}
         onAnnuleer={() => setBewerk(null)}
       />
@@ -53,21 +75,24 @@ function Activiteiten({ sessie }) {
   async function verwijder(a) {
     if (!window.confirm(nl.zekerActiviteit)) return
     await rpc('activiteit_verwijderen', { p_token: sessie.token, p_id: a.id })
-    herlaad()
+    ververs()
   }
+
+  const eigen = data.activiteiten.filter((a) => !a.globaal)
+  const globaal = data.activiteiten.filter((a) => a.globaal)
 
   return (
     <div className="stack">
       <button className="btn" onClick={() => setBewerk({ ...LEEG })}>
         {nl.nieuweActiviteit}
       </button>
-      {acts && acts.length === 0 && <p className="note">{nl.geenActiviteiten}</p>}
+      {eigen.length === 0 && <p className="note">{nl.geenActiviteitenBeheer}</p>}
       <ul className="stack lijst-los">
-        {(acts || []).map((a) => (
+        {eigen.map((a) => (
           <li key={a.id} className="card stack klein-gap">
             <strong>{a.titel}</strong>
             <span className="meta">
-              {nl.dag} {a.dag}, {a.start} – {a.eind}
+              {dagLabel(dagDatum(data.instellingen, a.dag), a.dag)}, {a.start} – {a.eind}
               {a.locatie ? `, ${a.locatie}` : ''}
             </span>
             <span className="meta">
@@ -77,6 +102,9 @@ function Activiteiten({ sessie }) {
               <button className="btn ghost klein" onClick={() => setBewerk(a)}>
                 {nl.bewerken}
               </button>
+              <button className="btn ghost klein" onClick={() => setBewerk({ ...a, id: null, titel: `${a.titel} (kopie)` })}>
+                {nl.dupliceren}
+              </button>
               <button className="btn danger klein" onClick={() => verwijder(a)}>
                 {nl.verwijderen}
               </button>
@@ -84,228 +112,57 @@ function Activiteiten({ sessie }) {
           </li>
         ))}
       </ul>
-    </div>
-  )
-}
-
-function ActiviteitForm({ sessie, startwaarde, leerlingen, onKlaar, onAnnuleer }) {
-  const [f, setF] = useState(startwaarde)
-  const [fout, setFout] = useState('')
-  const [bezig, setBezig] = useState(false)
-  const zet = (veld) => (e) => setF({ ...f, [veld]: e.target.value })
-
-  const wissel = (id) =>
-    setF({ ...f, leerlingen: f.leerlingen.includes(id) ? f.leerlingen.filter((x) => x !== id) : [...f.leerlingen, id] })
-
-  async function bewaar(e) {
-    e.preventDefault()
-    if (!f.titel.trim()) return setFout(nl.titelFout)
-    if (f.eind <= f.start) return setFout(nl.tijdFout)
-    setBezig(true)
-    setFout('')
-    try {
-      await rpc('activiteit_opslaan', {
-        p_token: sessie.token,
-        p_id: f.id,
-        p_titel: f.titel,
-        p_dag: Number(f.dag),
-        p_start: f.start,
-        p_eind: f.eind,
-        p_locatie: f.locatie,
-        p_omschrijving: f.omschrijving,
-        p_leerlingen: f.leerlingen,
-      })
-      onKlaar()
-    } catch {
-      setFout(nl.laadFout)
-      setBezig(false)
-    }
-  }
-
-  return (
-    <form className="card stack" onSubmit={bewaar}>
-      <label className="veld">
-        <span>{nl.titel}</span>
-        <input value={f.titel} onChange={zet('titel')} maxLength={80} required />
-      </label>
-      <label className="veld">
-        <span>{nl.dag}</span>
-        <select value={f.dag} onChange={zet('dag')}>
-          <option value={1}>{nl.dag} 1</option>
-          <option value={2}>{nl.dag} 2</option>
-        </select>
-      </label>
-      <div className="rij">
-        <label className="veld grow">
-          <span>{nl.begin}</span>
-          <input type="time" value={f.start} onChange={zet('start')} required />
-        </label>
-        <label className="veld grow">
-          <span>{nl.einde}</span>
-          <input type="time" value={f.eind} onChange={zet('eind')} required />
-        </label>
-      </div>
-      <label className="veld">
-        <span>{nl.locatie}</span>
-        <input value={f.locatie} onChange={zet('locatie')} maxLength={80} />
-      </label>
-      <label className="veld">
-        <span>{nl.omschrijving}</span>
-        <textarea value={f.omschrijving} onChange={zet('omschrijving')} maxLength={500} rows={3} />
-      </label>
-
-      <fieldset className="veld">
-        <legend>
-          {nl.deelnemers} ({f.leerlingen.length})
-        </legend>
-        <div className="rij">
-          <button type="button" className="btn ghost klein" onClick={() => setF({ ...f, leerlingen: leerlingen.map((l) => l.id) })}>
-            {nl.iedereen}
-          </button>
-          <button type="button" className="btn ghost klein" onClick={() => setF({ ...f, leerlingen: [] })}>
-            {nl.niemand}
-          </button>
-        </div>
-        <ul className="vinklijst">
-          {leerlingen.map((l) => (
-            <li key={l.id}>
-              <label>
-                <input type="checkbox" checked={f.leerlingen.includes(l.id)} onChange={() => wissel(l.id)} />
-                <span>{l.naam}</span>
-              </label>
-            </li>
-          ))}
-        </ul>
-      </fieldset>
-
-      {fout && (
-        <p className="fout" role="alert">
-          {fout}
-        </p>
+      {globaal.length > 0 && (
+        <>
+          <h3>{nl.voorIedereen}</h3>
+          <ul className="keuzelijst">
+            {globaal.map((a) => (
+              <li key={a.id}>
+                {dagLabel(dagDatum(data.instellingen, a.dag), a.dag)} {a.start}: {a.titel}
+              </li>
+            ))}
+          </ul>
+        </>
       )}
-      <button className="btn" disabled={bezig}>
-        {nl.opslaan}
-      </button>
-      <button type="button" className="btn ghost" onClick={onAnnuleer}>
-        {nl.annuleren}
-      </button>
-    </form>
-  )
-}
-
-/* ---------- leerlingen ---------- */
-
-function Leerlingen({ sessie }) {
-  const [namen, setNamen] = useState('')
-  const [fout, setFout] = useState('')
-  const { data, herlaad } = useLive('leerlingen', () => rpc('leerlingen_van_klas', { p_token: sessie.token }), [], 120000)
-
-  async function voegToe(e) {
-    e.preventDefault()
-    setFout('')
-    try {
-      await rpc('leerlingen_toevoegen', { p_token: sessie.token, p_namen: namen })
-      setNamen('')
-      herlaad()
-    } catch {
-      setFout(nl.laadFout)
-    }
-  }
-
-  async function verwijder(l) {
-    if (!window.confirm(`${l.naam}: ${nl.zekerLeerling}`)) return
-    await rpc('leerling_verwijderen', { p_token: sessie.token, p_id: l.id })
-    herlaad()
-  }
-
-  return (
-    <div className="stack">
-      <form className="card stack" onSubmit={voegToe}>
-        <label className="veld">
-          <span>{nl.namenToevoegen}</span>
-          <textarea value={namen} onChange={(e) => setNamen(e.target.value)} rows={5} />
-          <small className="note">{nl.namenUitleg}</small>
-        </label>
-        {fout && <p className="fout">{fout}</p>}
-        <button className="btn" disabled={!namen.trim()}>
-          {nl.toevoegen}
-        </button>
-      </form>
-      <ul className="keuzelijst">
-        {(data || []).map((l) => (
-          <li key={l.id} className="rij tussen">
-            <span>{l.naam}</span>
-            <button className="btn danger klein" onClick={() => verwijder(l)}>
-              {nl.verwijderen}
-            </button>
-          </li>
-        ))}
-      </ul>
     </div>
   )
 }
 
-/* ---------- mededelingen ---------- */
-
-function MededelingenBeheer({ sessie }) {
-  const [titel, setTitel] = useState('')
-  const [tekst, setTekst] = useState('')
+function Dagberichten({ sessie }) {
+  const { data, ververs } = useData()
+  const start = (d) => data.dagberichten.find((b) => b.dag === d && !b.globaal)?.bericht || ''
+  const [waarden, setWaarden] = useState({ 1: start(1), 2: start(2) })
   const [fout, setFout] = useState('')
-  const { data, herlaad } = useLive('mededelingen', () => rpc('mededelingen_lijst', { p_token: sessie.token }), [], 30000)
+  const [ok, setOk] = useState(0)
 
-  async function plaats(e) {
-    e.preventDefault()
+  async function bewaar(d) {
     setFout('')
+    setOk(0)
     try {
-      await rpc('mededeling_plaatsen', { p_token: sessie.token, p_titel: titel, p_tekst: tekst })
-      setTitel('')
-      setTekst('')
-      herlaad()
+      await rpc('dagbericht_zetten', { p_token: sessie.token, p_dag: d, p_bericht: waarden[d] })
+      await ververs()
+      setOk(d)
     } catch {
       setFout(nl.laadFout)
     }
   }
 
-  async function verwijder(m) {
-    if (!window.confirm(nl.zekerMededeling)) return
-    await rpc('mededeling_verwijderen', { p_token: sessie.token, p_id: m.id })
-    herlaad()
-  }
-
   return (
     <div className="stack">
-      <form className="card stack" onSubmit={plaats}>
-        <h3>{nl.nieuweMededeling}</h3>
-        <label className="veld">
-          <span>{nl.titel}</span>
-          <input value={titel} onChange={(e) => setTitel(e.target.value)} maxLength={80} required />
-        </label>
-        <label className="veld">
-          <span>{nl.mededelingTekst}</span>
-          <textarea value={tekst} onChange={(e) => setTekst(e.target.value)} rows={3} maxLength={1000} />
-        </label>
-        {fout && <p className="fout">{fout}</p>}
-        <button className="btn" disabled={!titel.trim()}>
-          {nl.plaatsen}
-        </button>
-      </form>
-      <ul className="stack lijst-los">
-        {(data || []).map((m) => (
-          <li key={m.id} className="card stack klein-gap">
-            <strong>{m.titel}</strong>
-            {m.tekst && <span>{m.tekst}</span>}
-            <span className="note">
-              {m.tijd}
-              {m.globaal ? `, ${nl.voorIedereen}` : ''}
-            </span>
-            {!m.globaal && (
-              <button className="btn danger klein" onClick={() => verwijder(m)}>
-                {nl.verwijderen}
-              </button>
-            )}
-          </li>
-        ))}
-      </ul>
+      <p className="note">{nl.dagberichtUitleg}</p>
+      {[1, 2].map((d) => (
+        <div key={d} className="card stack">
+          <label className="veld">
+            <span>{dagLabel(dagDatum(data.instellingen, d), d)}</span>
+            <input value={waarden[d]} maxLength={200} onChange={(e) => setWaarden({ ...waarden, [d]: e.target.value })} />
+          </label>
+          <button className="btn" onClick={() => bewaar(d)}>
+            {nl.opslaan}
+          </button>
+          {ok === d && <p className="ok">✓ {nl.opgeslagen}</p>}
+        </div>
+      ))}
+      {fout && <p className="fout">{fout}</p>}
     </div>
   )
 }

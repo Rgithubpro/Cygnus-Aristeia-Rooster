@@ -140,3 +140,84 @@ input[type="checkbox"] { width: 1.25rem; min-height: 1.25rem; height: 1.25rem; a
 
 .vinklijst { list-style: none; display: grid; gap: 0.1rem; margin-top: 0.5rem; max-height: 18rem; overflow: auto; }
 .vinklijst label { display: flex; gap: 0.7rem; align-items: center; min-height: 2.5rem; cursor: pointer; }
+
+/* ---------- v2: rooster, info, stand, modal, root ---------- */
+.page.breed { max-width: 44rem; }
+.segment.scroll { overflow-x: auto; }
+.segment.scroll button { flex: 0 0 auto; padding: 0 0.9rem; white-space: nowrap; }
+
+.banner.systeem { display: flex; gap: 0.75rem; align-items: flex-start; background: var(--moved-bg); color: var(--moved); }
+.banner.systeem .btn { color: inherit; border-color: currentColor; }
+
+.dagbericht { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 0.5rem; padding: 0.7rem 0.9rem; font-weight: 600; }
+
+.activiteiten { list-style: none; display: grid; gap: 0.6rem; }
+.activiteit {
+  --kc: #2f56d9;
+  display: grid; grid-template-columns: 4.5rem 1fr; gap: 0.8rem;
+  background: var(--surface); border: 1px solid var(--line); border-left: 6px solid var(--kc);
+  border-radius: 0.7rem; padding: 0.8rem 0.9rem;
+}
+.activiteit.c-blauw { --kc: #2f56d9; }
+.activiteit.c-groen { --kc: #1f8a4c; }
+.activiteit.c-amber { --kc: #c98a0b; }
+.activiteit.c-paars { --kc: #7a3cc4; }
+.activiteit.c-koraal { --kc: #d9534f; }
+.activiteit.c-grijs { --kc: #6b7280; }
+@media (prefers-color-scheme: dark) {
+  .activiteit.c-blauw { --kc: #8fa8ff; } .activiteit.c-groen { --kc: #62d394; } .activiteit.c-amber { --kc: #ffc46b; }
+  .activiteit.c-paars { --kc: #c79bff; } .activiteit.c-koraal { --kc: #ff9a95; } .activiteit.c-grijs { --kc: #9ca3af; }
+}
+.activiteit.huidig { box-shadow: 0 0 0 2px var(--kc); }
+.act-tijd { display: grid; align-content: start; font-variant-numeric: tabular-nums; }
+.act-tijd span { color: var(--ink2); font-size: 0.85rem; }
+.act-body { display: grid; gap: 0.2rem; min-width: 0; }
+.act-body .meta, .act-body .voor { overflow-wrap: anywhere; }
+.voor { font-size: 0.85rem; color: var(--ink2); }
+.nu-badge { justify-self: start; font-size: 0.75rem; font-weight: 700; background: var(--kc); color: #fff; border-radius: 0.4rem; padding: 0.1rem 0.5rem; }
+@media (prefers-color-scheme: dark) { .nu-badge { color: #0e1426; } }
+
+.info-kaart { border-left: 4px solid var(--accent); }
+.info-kaart p { margin-top: 0.3rem; overflow-wrap: anywhere; }
+
+.tekst { white-space: pre-wrap; overflow-wrap: anywhere; }
+.link { font: inherit; color: var(--accent); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; text-align: left; }
+.woord-af { overflow-wrap: anywhere; }
+.plaatje { border: 0; padding: 0; background: none; cursor: zoom-in; }
+.plaatje img { width: 100%; max-height: 18rem; object-fit: cover; border-radius: 0.6rem; display: block; }
+img.groot { width: 100%; max-height: 70vh; object-fit: contain; }
+
+.stand { list-style: none; display: grid; gap: 0.35rem; }
+.stand li { display: flex; gap: 0.75rem; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 0.6rem; padding: 0.6rem 0.8rem; }
+.stand li.eigen { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.stand.klein li { padding: 0.4rem 0.6rem; }
+.positie { font-family: var(--serif); font-weight: 700; min-width: 1.6rem; text-align: center; color: var(--accent); }
+details.card summary { cursor: pointer; font-weight: 600; }
+
+.modal { position: fixed; inset: 0; background: rgba(8, 12, 24, 0.6); display: grid; place-items: center; padding: 1rem; z-index: 50; overflow-y: auto; }
+.modal-kaart { background: var(--surface); color: var(--ink); border-radius: 0.9rem; padding: 1.1rem; width: min(100%, 30rem); max-height: 90vh; overflow-y: auto; }
+
+.ok { color: #1f7a45; font-weight: 600; }
+@media (prefers-color-scheme: dark) { .ok { color: #62d394; } }
+.waarschuwing { background: var(--moved-bg); color: var(--moved); border-radius: 0.5rem; padding: 0.7rem 0.9rem; }
+.waarschuwing ul { margin: 0.3rem 0 0 1.1rem; }
+code { background: var(--bg); border-radius: 0.3rem; padding: 0.05rem 0.35rem; }
+.vink { display: flex; gap: 0.7rem; align-items: center; min-height: 2.5rem; cursor: pointer; }
+.vinklijst.hoog { max-height: 26rem; }
+.getal { width: 6rem; text-align: right; }
+.qr-klein { width: 7rem; height: 7rem; border-radius: 0.4rem; background: #fff; }
+.qr-groot { width: 14rem; height: 14rem; background: #fff; border-radius: 0.5rem; }
+
+/* ---------- printing ---------- */
+#print-area { display: none; }
+@media print {
+  #root { display: none !important; }
+  #print-area { display: block; color: #000; background: #fff; font-family: var(--sans); }
+  .print-pagina { page-break-after: always; padding: 0 0 1rem; }
+  .print-pagina h1 { font-size: 1.5rem; margin-bottom: 0.6rem; }
+  .print-pagina h2 { font-size: 1.1rem; margin: 1rem 0 0.4rem; }
+  .print-pagina table { width: 100%; border-collapse: collapse; }
+  .print-pagina th, .print-pagina td { border: 1px solid #999; padding: 0.35rem 0.5rem; text-align: left; font-size: 0.95rem; }
+  .print-pagina.qr { text-align: center; }
+  .print-pagina.qr img { width: 14rem; height: 14rem; }
+}
