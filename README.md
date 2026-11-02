@@ -5,7 +5,8 @@ A mobile-first PWA (Dutch UI) for a two-day school event where classes compete.
 - **Leerlingen:** log in with the class password, pick their name, see their own rooster (or the whole class), day messages,
   "Nu bezig", info/news with images, the ranking (once revealed), print their rooster, and get a notification 5 minutes before each activity.
 - **Klassenbeheerders** (second class password): manage their own class: students, activities with participants (with overlap
-  warnings), day messages, personal info per student, announcements, and push messages to their class.
+  warnings, own emoji), day messages, personal info per student, announcements with pictures, push messages to their class,
+  and the class look: display name, slogan, accent colour, emoji and logo (Beheer, tab "Uiterlijk").
 - **Root** (`/root`, real login + optional 2FA): create classes and passwords, QR codes, programme items for everyone,
   global info with images, scores and the "reveal ranking" switch, push to everyone, event dates, system banner, cleanup.
 
@@ -15,8 +16,10 @@ Stack: React + Vite + vite-plugin-pwa, Cloudflare Workers (static assets), Supab
 
 1. **Supabase project** in region Frankfurt. Authentication, Sign In / Providers: **turn off "Allow new users to sign up"**
    (only you need an account).
-2. **SQL Editor:** if you ran the earlier scaffold, run `supabase/reset.sql` first. Then run `supabase/schema.sql`,
-   then (for testing) `supabase/seed-demo.sql`.
+2. **SQL Editor:** if you ran the earlier scaffold, run `supabase/reset.sql` first. Then run `supabase/schema.sql`, then
+   `supabase/migratie-v3.sql` (customization), then (for testing) `supabase/seed-demo.sql`.
+   Also turn ON Authentication, Sign In / Providers, "Allow anonymous sign-ins": class admins use it only to get permission
+   to upload pictures into their own class folder (new sign-ups by email stay off).
 3. **`src/config.js`:** Project URL and anon/publishable key (public values, safe to commit).
 4. **Root account:** Authentication, Users, "Add user" (your email + a strong password, auto-confirm).
    Then in the SQL Editor: `select public.maak_root('jij@example.com');`
@@ -24,13 +27,20 @@ Stack: React + Vite + vite-plugin-pwa, Cloudflare Workers (static assets), Supab
 5. **Push notifications (optional but recommended):**
    - `npx web-push generate-vapid-keys`. Put the **public** key in `src/config.js` (`VAPID_PUBLIEKE_SLEUTEL`).
    - Deploy the function: `supabase functions deploy push --no-verify-jwt` (or create it in the dashboard from
-     `supabase/functions/push/index.ts` and switch "Verify JWT" off).
+     `supabase/functions/push/index.ts` and switch "Verify JWT" off). **The function name must be exactly `push` in
+     lowercase**: names are case-sensitive, and a function called `Push` makes every call and every cron run return 404.
    - Function secrets (Edge Functions, Secrets): `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (`mailto:you@example.com`),
      `CRON_SECRET` (any long random string).
    - Run `supabase/cron.sql` in the SQL Editor after replacing the two placeholders (do not commit the real values).
 6. **Keep-alive:** GitHub repo secrets `SUPABASE_URL` and `SUPABASE_KEY`. `.github/workflows/keep-alive.yml` pings the database every
    3 days so the free project never pauses. GitHub disables scheduled workflows after 60 days without repo activity.
 7. **Cloudflare Workers Builds:** build `npm run build`, deploy `npx wrangler deploy`. No variables needed.
+
+## Check that notifications work
+
+Log in on a phone (on iPhone: first "Zet op beginscherm" and open the app from the home screen), pick your name,
+open "Meldingen", turn them on and press "Stuur een testmelding". The result tells you how many devices were reached.
+Server side, `select status_code, content from net._http_response order by created desc limit 5;` should show 200 every minute.
 
 ## Try it
 
@@ -49,6 +59,8 @@ print the QR codes, add the programme under Programma. Give each class its behee
   (only a hash is stored), expire (3 days or the end date), and can be ended per class.
 - Admins can only change their own class; Root functions require a real Supabase login (+ 2FA once enabled).
 - Hard caps on students/activities per class; text length limits in the database.
+- Pictures: Root may upload anywhere; a class admin only into their own class folder (max 150 pictures), enforced by the
+  storage policy, with the admin's class session as proof.
 - All text is rendered as plain text. No HTML, no embed code. Links ask for confirmation. Images can only be uploaded by Root.
 - The ranking is only returned for days Root made visible. Push can only be sent by Root or by an admin to their own class.
 - No third-party analytics. Personal data is removed with one button, or automatically 14 days after the end date.

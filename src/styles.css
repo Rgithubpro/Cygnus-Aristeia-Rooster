@@ -11,6 +11,7 @@
   --cancelled-bg: #fde3e5;
   --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
   --sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --accent-ink: #ffffff;
   color-scheme: light dark;
 }
 
@@ -22,6 +23,7 @@
     --ink2: #a5b0cc;
     --line: #27314f;
     --accent: #8fa8ff;
+    --accent-ink: #0e1426;
     --moved: #ffc46b;
     --moved-bg: #3a2d12;
     --cancelled: #ff9aa1;
@@ -113,9 +115,8 @@ input[type="checkbox"] { width: 1.25rem; min-height: 1.25rem; height: 1.25rem; a
 
 .btn {
   font: inherit; font-weight: 700; cursor: pointer; min-height: 2.75rem; padding: 0.6rem 1.1rem;
-  border-radius: 0.6rem; border: 1px solid var(--accent); background: var(--accent); color: #fff;
+  border-radius: 0.6rem; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink);
 }
-@media (prefers-color-scheme: dark) { .btn { color: #0e1426; } }
 .btn:disabled { opacity: 0.5; cursor: default; }
 .btn.ghost { background: transparent; color: var(--accent); }
 .btn.danger { background: transparent; color: var(--cancelled); border-color: var(--cancelled); }
@@ -128,8 +129,7 @@ input[type="checkbox"] { width: 1.25rem; min-height: 1.25rem; height: 1.25rem; a
   flex: 1; font: inherit; font-size: 0.9rem; font-weight: 600; cursor: pointer; min-height: 2.5rem;
   border: 0; border-radius: 0.5rem; background: transparent; color: var(--ink2);
 }
-.segment button[aria-selected="true"] { background: var(--accent); color: #fff; }
-@media (prefers-color-scheme: dark) { .segment button[aria-selected="true"] { color: #0e1426; } }
+.segment button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
 
 .keuzelijst { list-style: none; display: grid; gap: 0.4rem; }
 .keuzelijst > li:not(:has(button.keuze)) { background: var(--surface); border: 1px solid var(--line); border-radius: 0.6rem; padding: 0.4rem 0.4rem 0.4rem 0.9rem; }
@@ -221,3 +221,23 @@ code { background: var(--bg); border-radius: 0.3rem; padding: 0.05rem 0.35rem; }
   .print-pagina.qr { text-align: center; }
   .print-pagina.qr img { width: 14rem; height: 14rem; }
 }
+
+/* ---------- v3: class theme, logo, emoji picker ---------- */
+.thema { --accent: var(--a-licht, #2f56d9); --accent-ink: var(--ink-licht, #ffffff); }
+@media (prefers-color-scheme: dark) {
+  .thema { --accent: var(--a-donker, #8fa8ff); --accent-ink: var(--ink-donker, #0e1426); }
+}
+.klas-logo { width: 44px; height: 44px; border-radius: 0.6rem; object-fit: cover; flex: none; background: #fff; }
+.klas-emoji { font-size: 2rem; line-height: 1; flex: none; width: 44px; text-align: center; }
+.head.voorbeeld { background: var(--surface); border: 1px solid var(--line); border-radius: 0.7rem; padding: 0.7rem; }
+.head.voorbeeld h2 { font-size: 1.25rem; }
+span.btn.klein { cursor: default; display: inline-flex; align-items: center; }
+
+.kleuren { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.kleur { width: 2.4rem; height: 2.4rem; border-radius: 50%; border: 2px solid var(--line); cursor: pointer; padding: 0; }
+.kleur.gekozen { outline: 3px solid var(--ink); outline-offset: 2px; }
+input[type="color"] { width: 2.75rem; padding: 0.15rem; }
+
+.emoji-in { width: 5rem; text-align: center; font-size: 1.4rem; }
+.emoji-rooster { display: grid; grid-template-columns: repeat(auto-fill, minmax(2.6rem, 1fr)); gap: 0.25rem; }
+.emoji-rooster button { font-size: 1.4rem; min-height: 2.6rem; background: var(--surface); border: 1px solid var(--line); border-radius: 0.5rem; cursor: pointer; }

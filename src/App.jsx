@@ -1,11 +1,12 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
-import { isGeconfigureerd } from './config.js'
+import { afbeeldingUrl, isGeconfigureerd } from './config.js'
 import { rpc, setBijOngeldigeSessie } from './api.js'
 import { laadSessie, bewaarSessie, wisAlles } from './session.js'
 import { DataProvider, useData } from './data.jsx'
 import { herregistreer } from './push.js'
 import { nl } from './strings.js'
 import Mark from './Mark.jsx'
+import { themaStijl } from './theme.js'
 import Banner from './Banner.jsx'
 import Login from './Login.jsx'
 import KiesNaam from './KiesNaam.jsx'
@@ -34,12 +35,19 @@ function useOnline() {
 }
 
 function Kop({ klas, onUitloggen }) {
+  const thema = klas?.thema || {}
   return (
     <header className="head">
-      <Mark size={44} />
+      {thema.logo ? (
+        <img className="klas-logo" src={afbeeldingUrl(thema.logo)} alt="" />
+      ) : thema.emoji ? (
+        <span className="klas-emoji" aria-hidden="true">{thema.emoji}</span>
+      ) : (
+        <Mark size={44} />
+      )}
       <div className="grow">
-        <h1>{nl.title}</h1>
-        <p className="tagline">{klas ? klas.naam : nl.tagline}</p>
+        <h1>{klas ? klas.weergavenaam || klas.naam : nl.title}</h1>
+        <p className="tagline">{klas ? thema.slogan || nl.title : nl.tagline}</p>
       </div>
       {onUitloggen && (
         <button className="btn ghost klein" onClick={onUitloggen}>
@@ -134,10 +142,11 @@ function Shell({ sessie, update, uitloggen, offline }) {
   }, [leerlingId, sessie.token])
 
   const klas = data?.klas ?? sessie.klas
+  const stijl = themaStijl(klas?.thema)
 
   if (!data) {
     return (
-      <main className="page">
+      <main className="page thema" style={stijl}>
         <Kop klas={klas} onUitloggen={uitloggen} />
         {offline}
         <p className="note">{fout ? nl.laadFout : nl.laden}</p>
@@ -148,7 +157,7 @@ function Shell({ sessie, update, uitloggen, offline }) {
   const moetNaamKiezen = !leerlingId && !sessie.naamOvergeslagen
   if (moetNaamKiezen || kiesOpnieuw) {
     return (
-      <main className="page">
+      <main className="page thema" style={stijl}>
         <Kop klas={klas} onUitloggen={uitloggen} />
         {offline}
         <KiesNaam
@@ -171,7 +180,7 @@ function Shell({ sessie, update, uitloggen, offline }) {
   ]
 
   return (
-    <main className="page">
+    <main className="page thema" style={stijl}>
       <Kop klas={klas} onUitloggen={uitloggen} />
       <Banner banner={data.instellingen.banner} />
       {offline}

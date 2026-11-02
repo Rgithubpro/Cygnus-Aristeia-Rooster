@@ -1,6 +1,6 @@
 -- ONLY if you ran the earlier scaffold (v1) and want to start the database clean.
 -- Deletes all Klassenstrijd tables and every function in the public schema, then run schema.sql.
-drop table if exists public.herinneringen, public.push_abonnementen, public.punten, public.berichten,
+drop table if exists public.upload_rechten, public.herinneringen, public.push_abonnementen, public.punten, public.berichten,
   public.dag_berichten, public.deelnames, public.activiteiten, public.inlogpogingen, public.sessies,
   public.leerlingen, public.klas_wachtwoorden, public.klassen, public.instellingen, public.root_gebruikers cascade;
 

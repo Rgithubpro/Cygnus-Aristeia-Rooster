@@ -7,6 +7,7 @@ import ActiviteitForm, { LEEG } from './ActiviteitForm.jsx'
 import BeheerLeerlingen from './BeheerLeerlingen.jsx'
 import BeheerInfo from './BeheerInfo.jsx'
 import BeheerPush from './BeheerPush.jsx'
+import BeheerKlas from './BeheerKlas.jsx'
 
 export default function Beheer({ sessie }) {
   const [deel, setDeel] = useState('activiteiten')
@@ -17,6 +18,7 @@ export default function Beheer({ sessie }) {
     ['dagberichten', nl.dagberichten],
     ['info', nl.info],
     ['meldingen', nl.meldingen],
+    ['klas', nl.uiterlijk],
   ]
   return (
     <div className="stack">
@@ -32,6 +34,7 @@ export default function Beheer({ sessie }) {
       {deel === 'dagberichten' && <Dagberichten sessie={sessie} />}
       {deel === 'info' && <BeheerInfo sessie={sessie} />}
       {deel === 'meldingen' && <BeheerPush sessie={sessie} />}
+      {deel === 'klas' && <BeheerKlas sessie={sessie} />}
       <button className="btn ghost klein" onClick={ververs}>
         ↻ {nl.verversen}
       </button>
@@ -60,6 +63,7 @@ function Activiteiten({ sessie }) {
             p_locatie: f.locatie,
             p_omschrijving: f.omschrijving,
             p_kleur: f.kleur,
+            p_emoji: f.emoji,
             p_leerlingen: f.leerlingen,
           })
         }

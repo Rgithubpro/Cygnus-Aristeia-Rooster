@@ -37,7 +37,7 @@ export default function Stand({ sessie }) {
           <li key={r.klas} className={r.eigen ? 'eigen' : ''}>
             <span className="positie">{r.positie}</span>
             <span className="grow">
-              {r.klas}
+              {r.emoji ? `${r.emoji} ` : ''}{r.klas}
               {r.eigen ? ` (${nl.jouwKlas})` : ''}
             </span>
             <strong>
@@ -58,7 +58,7 @@ export default function Stand({ sessie }) {
                 {o.resultaten.map((r, i) => (
                   <li key={i} className={r.eigen ? 'eigen' : ''}>
                     <span className="positie">{i + 1}</span>
-                    <span className="grow">{r.klas}</span>
+                    <span className="grow">{r.emoji ? `${r.emoji} ` : ''}{r.klas}</span>
                     <strong>{r.punten}</strong>
                   </li>
                 ))}

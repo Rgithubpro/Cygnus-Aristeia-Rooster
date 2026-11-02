@@ -97,7 +97,7 @@ export default function Rooster() {
                 <div className="act-body">
                   {nuBezig && <span className="nu-badge">▶ {nl.nuBezig}</span>}
                   <strong>
-                    {emoji(a.titel)} {a.titel}
+                    {a.emoji || emoji(a.titel)} {a.titel}
                   </strong>
                   {a.locatie && <span className="meta">📍 {a.locatie}</span>}
                   {a.omschrijving && <span className="meta">{a.omschrijving}</span>}

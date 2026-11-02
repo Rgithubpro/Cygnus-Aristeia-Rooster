@@ -1,4 +1,5 @@
 import { SUPABASE_URL, SUPABASE_KEY } from '../config.js'
+import { verkleind } from '../afbeelding.js'
 
 // The Supabase library is only loaded for Root (dynamic import), so students never download it.
 let belofte
@@ -30,21 +31,13 @@ export async function rootToken() {
   return data.session?.access_token
 }
 
-async function verkleind(bestand) {
-  const bmp = await createImageBitmap(bestand)
-  const schaal = Math.min(1, 1600 / Math.max(bmp.width, bmp.height))
-  const canvas = document.createElement('canvas')
-  canvas.width = Math.round(bmp.width * schaal)
-  canvas.height = Math.round(bmp.height * schaal)
-  canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height)
-  return new Promise((res) => canvas.toBlob(res, 'image/jpeg', 0.85))
-}
-
-// Shrinks the picture to max 1600px, uploads it (Root only, enforced by storage policy), returns the file name.
-export async function uploadAfbeelding(bestand) {
+// Shrinks the picture (default max 1600px), uploads it (Root only, enforced by the storage policy), returns the path.
+// `map` puts it in a folder, for example a class id for a class logo.
+export async function uploadAfbeelding(bestand, map = '', maxPx = 1600) {
   if (!bestand.type.startsWith('image/')) throw new Error('Dit is geen afbeelding.')
-  const blob = await verkleind(bestand)
-  const pad = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}.jpg`
+  const blob = await verkleind(bestand, maxPx)
+  const naam = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}.jpg`
+  const pad = map ? `${map}/${naam}` : naam
   const c = await rootClient()
   const { error } = await c.storage.from('afbeeldingen').upload(pad, blob, { contentType: 'image/jpeg', upsert: false })
   if (error) throw error

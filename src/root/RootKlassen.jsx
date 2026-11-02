@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { rootRpc } from './client.js'
+import { rootRpc, uploadAfbeelding, verwijderAfbeelding } from './client.js'
+import KlasThemaForm from '../KlasThemaForm.jsx'
 import { maakWachtwoord, slugVan } from '../util.js'
 
 const link = (slug) => `${location.origin}/k/${slug}`
@@ -41,7 +42,7 @@ export default function RootKlassen({ overzicht, herlaad }) {
         {overzicht.klassen.map((k) => (
           <li key={k.id} className="card stack klein-gap">
             <div className="rij tussen">
-              <strong>{k.naam}</strong>
+              <strong>{k.weergavenaam ? `${k.naam} (${k.weergavenaam})` : k.naam}</strong>
               <button className="btn ghost klein" onClick={() => setOpen(open === k.id ? null : k.id)}>
                 {open === k.id ? 'Sluiten' : 'Details'}
               </button>
@@ -210,6 +211,19 @@ function KlasDetail({ klas, herlaad, onWeg }) {
           Nieuw {nieuwWw.rol === 'lw' ? 'leerlingwachtwoord' : 'beheerderswachtwoord'}: <code>{nieuwWw.ww}</code> (noteer het nu)
         </div>
       )}
+
+      <details className="stack">
+        <summary>Uiterlijk van deze klas (naam, kleur, logo, emoji)</summary>
+        <KlasThemaForm
+          klas={klas}
+          opslaan={async (weergavenaam, thema) => {
+            await rootRpc('root_klas_thema_opslaan', { p_id: klas.id, p_weergavenaam: weergavenaam, p_thema: thema })
+            await herlaad()
+          }}
+          upload={(bestand) => uploadAfbeelding(bestand, klas.id, 512)}
+          verwijder={verwijderAfbeelding}
+        />
+      </details>
 
       <label className="veld">
         <span>Leerlingen toevoegen (één naam per regel)</span>

@@ -1,7 +1,9 @@
-// Sends Web Push notifications.
+// Sends Web Push notifications (the standard that Chrome/Android, Firefox and Safari/iOS all support).
 //   actie "herinneringen": called every minute by pg_cron (header x-cron-secret)
 //   actie "handmatig":     Root (Authorization: Bearer <login token>) or a class admin (body.token)
-// Secrets to set: CRON_SECRET, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT (mailto:you@example.com)
+//   actie "test":          any logged-in student/admin sends a test notification to their own devices (body.token)
+// IMPORTANT: the function name must be exactly "push" (lowercase), the app and cron.sql call /functions/v1/push.
+// Secrets: CRON_SECRET, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT (mailto:you@example.com)
 import postgres from 'npm:postgres@3.4.4'
 import webpush from 'npm:web-push@3.6.7'
 
@@ -9,11 +11,21 @@ const sql = postgres(Deno.env.get('SUPABASE_DB_URL')!, { max: 1, prepare: false 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const CRON_SECRET = Deno.env.get('CRON_SECRET') ?? ''
 
-webpush.setVapidDetails(
-  Deno.env.get('VAPID_SUBJECT') ?? 'mailto:admin@example.com',
-  Deno.env.get('VAPID_PUBLIC_KEY')!,
-  Deno.env.get('VAPID_PRIVATE_KEY')!,
-)
+let vapidKlaar = false
+function vapid(): string | null {
+  if (vapidKlaar) return null
+  const pub = Deno.env.get('VAPID_PUBLIC_KEY')
+  const priv = Deno.env.get('VAPID_PRIVATE_KEY')
+  if (!pub || !priv) return 'vapid_sleutels_ontbreken'
+  try {
+    webpush.setVapidDetails(Deno.env.get('VAPID_SUBJECT') || 'mailto:admin@example.com', pub, priv)
+    vapidKlaar = true
+    return null
+  } catch (e) {
+    console.error('VAPID configuratie ongeldig:', (e as Error).message)
+    return 'vapid_sleutels_ongeldig'
+  }
+}
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -27,6 +39,7 @@ type Sub = { id: string; endpoint: string; p256dh: string; auth: string }
 async function verstuur(items: { sub: Sub; payload: object }[]) {
   let ok = 0
   const dood: string[] = []
+  const fouten: Record<string, number> = {}
   for (let i = 0; i < items.length; i += 25) {
     await Promise.all(items.slice(i, i + 25).map(async ({ sub, payload }) => {
       try {
@@ -38,12 +51,15 @@ async function verstuur(items: { sub: Sub; payload: object }[]) {
         ok++
       } catch (e) {
         const code = (e as { statusCode?: number }).statusCode
+        const sleutel = String(code ?? 'netwerk')
+        fouten[sleutel] = (fouten[sleutel] ?? 0) + 1
+        console.error('push mislukt', sleutel, new URL(sub.endpoint).host, (e as { body?: string }).body ?? (e as Error).message)
         if (code === 404 || code === 410) dood.push(sub.id)
       }
     }))
   }
   if (dood.length) await sql`delete from public.push_abonnementen where id = any(${sql.array(dood)}::uuid[])`
-  return { ok, mislukt: items.length - ok }
+  return { ok, mislukt: items.length - ok, fouten }
 }
 
 function jwtPayload(jwt: string): { aal?: string } {
@@ -74,6 +90,8 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   try {
     const body = await req.json()
+    const vapidFout = vapid()
+    if (vapidFout) return json({ ok: false, error: vapidFout }, 500)
 
     if (body.actie === 'herinneringen') {
       if (!CRON_SECRET || req.headers.get('x-cron-secret') !== CRON_SECRET) return json({ ok: false, error: 'geen_toegang' }, 401)
@@ -89,7 +107,21 @@ Deno.serve(async (req) => {
           payload: { title: `Straks: ${r.onderwerp}`, body: `${r.starttijd}${r.plek ? `, ${r.plek}` : ''}`, tag: 'herinnering', url: '/' },
         })))
       const res = await verstuur(items)
-      return json({ ok: true, verstuurd: res.ok, mislukt: res.mislukt })
+      return json({ ok: true, verstuurd: res.ok, mislukt: res.mislukt, fouten: res.fouten })
+    }
+
+    if (body.actie === 'test') {
+      let leerling: string | null = null
+      try {
+        const [s] = await sql`select leerling_id from public._sessie(${String(body.token ?? '')})`
+        leerling = s?.leerling_id ?? null
+      } catch {
+        return json({ ok: false, error: 'sessie_ongeldig' }, 401)
+      }
+      if (!leerling) return json({ ok: false, error: 'kies_eerst_een_naam' }, 400)
+      const subs = await sql<Sub[]>`select id, endpoint, p256dh, auth from public.push_abonnementen where leerling_id = ${leerling}::uuid`
+      const res = await verstuur(subs.map((sub) => ({ sub, payload: { title: 'Testmelding', body: 'Het werkt! Zo zie je straks je herinneringen.', tag: 'test', url: '/' } })))
+      return json({ ok: true, verstuurd: res.ok, mislukt: res.mislukt, apparaten: subs.length, fouten: res.fouten })
     }
 
     if (body.actie === 'handmatig') {
@@ -135,12 +167,12 @@ Deno.serve(async (req) => {
       }
 
       const res = await verstuur(subs.map((sub) => ({ sub, payload: { title: titel, body: tekst, image: afbeelding, url: '/' } })))
-      return json({ ok: true, verstuurd: res.ok, mislukt: res.mislukt, apparaten: subs.length })
+      return json({ ok: true, verstuurd: res.ok, mislukt: res.mislukt, apparaten: subs.length, fouten: res.fouten })
     }
 
     return json({ ok: false, error: 'onbekende_actie' }, 400)
   } catch (e) {
-    console.error(e)
+    console.error('push serverfout', (e as Error).message)
     return json({ ok: false, error: 'serverfout' }, 500)
   }
 })

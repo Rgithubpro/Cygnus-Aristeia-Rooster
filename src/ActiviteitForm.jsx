@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { KLEUREN, overlapt } from './util.js'
 import { nl } from './strings.js'
+import EmojiKiezer from './EmojiKiezer.jsx'
 
-export const LEEG = { id: null, titel: '', dag: 1, start: '09:00', eind: '09:45', locatie: '', omschrijving: '', kleur: 'blauw', leerlingen: [] }
+export const LEEG = { id: null, titel: '', dag: 1, start: '09:00', eind: '09:45', locatie: '', omschrijving: '', kleur: 'blauw', emoji: '', leerlingen: [] }
 
 // Shared by class admins (with participants) and Root (programme items for everyone, zonderDeelnemers).
 export default function ActiviteitForm({ startwaarde, leerlingen = [], anderen = [], opslaan, onKlaar, onAnnuleer, zonderDeelnemers = false }) {
-  const [f, setF] = useState(startwaarde)
+  const [f, setF] = useState({ ...startwaarde, emoji: startwaarde.emoji || '' })
   const [fout, setFout] = useState('')
   const [bezig, setBezig] = useState(false)
   const zet = (veld) => (e) => setF({ ...f, [veld]: e.target.value })
@@ -76,6 +77,7 @@ export default function ActiviteitForm({ startwaarde, leerlingen = [], anderen =
           <input type="time" value={f.eind} onChange={zet('eind')} required />
         </label>
       </div>
+      <EmojiKiezer label={nl.emoji} waarde={f.emoji} onKies={(emoji) => setF({ ...f, emoji })} auto />
       <label className="veld">
         <span>{nl.locatie}</span>
         <input value={f.locatie} onChange={zet('locatie')} maxLength={80} />

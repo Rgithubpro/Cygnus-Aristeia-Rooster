@@ -22,7 +22,7 @@ export default function RootProgramma({ overzicht }) {
         opslaan={(f) =>
           rootRpc('root_activiteit_opslaan', {
             p_id: f.id, p_titel: f.titel, p_dag: f.dag, p_start: f.start, p_eind: f.eind,
-            p_locatie: f.locatie, p_omschrijving: f.omschrijving, p_kleur: f.kleur,
+            p_locatie: f.locatie, p_omschrijving: f.omschrijving, p_kleur: f.kleur, p_emoji: f.emoji,
           })
         }
         onKlaar={async () => { await laad(); setBewerk(null) }}
@@ -42,7 +42,7 @@ export default function RootProgramma({ overzicht }) {
       <ul className="stack lijst-los">
         {data.activiteiten.map((a) => (
           <li key={a.id} className="card stack klein-gap">
-            <strong>{a.titel}</strong>
+            <strong>{a.emoji ? `${a.emoji} ` : ''}{a.titel}</strong>
             <span className="meta">{label(a.dag)}, {a.start} – {a.eind}{a.locatie ? `, ${a.locatie}` : ''}</span>
             <div className="rij">
               <button className="btn ghost klein" onClick={() => setBewerk(a)}>Bewerken</button>
