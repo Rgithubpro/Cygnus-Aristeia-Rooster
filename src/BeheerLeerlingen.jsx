@@ -7,12 +7,14 @@ export default function BeheerLeerlingen({ sessie }) {
   const { data, ververs } = useData()
   const [namen, setNamen] = useState('')
   const [fout, setFout] = useState('')
+  const [info, setInfo] = useState('')
 
   async function voegToe(e) {
     e.preventDefault()
     setFout('')
     try {
-      await rpc('leerlingen_toevoegen', { p_token: sessie.token, p_namen: namen })
+      const r = await rpc('leerlingen_toevoegen', { p_token: sessie.token, p_namen: namen })
+      setInfo(r ? `${r.toegevoegd} ${nl.toegevoegdInfo}${r.overgeslagen ? `, ${r.overgeslagen} ${nl.overgeslagenInfo}` : ''}` : '')
       setNamen('')
       ververs()
     } catch (err) {
@@ -33,6 +35,7 @@ export default function BeheerLeerlingen({ sessie }) {
           <small className="note">{nl.namenUitleg}</small>
         </label>
         {fout && <p className="fout">{fout}</p>}
+        {info && <p className="ok">✓ {info}</p>}
         <button className="btn" disabled={!namen.trim()}>
           {nl.toevoegen}
         </button>

@@ -18,6 +18,10 @@ export async function rootRpc(naam, args = {}) {
   const c = await rootClient()
   const { data, error } = await c.rpc(naam, args)
   if (error) {
+    if (error.code === 'PGRST301' || /jwt/i.test(error.message)) {
+      await c.auth.signOut().catch(() => {})
+      location.reload()
+    }
     const e = new Error(error.message)
     e.code = error.message
     throw e

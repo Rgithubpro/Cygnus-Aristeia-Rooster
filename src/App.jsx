@@ -3,7 +3,7 @@ import { afbeeldingUrl, isGeconfigureerd } from './config.js'
 import { rpc, setBijOngeldigeSessie } from './api.js'
 import { laadSessie, bewaarSessie, wisAlles } from './session.js'
 import { DataProvider, useData } from './data.jsx'
-import { herregistreer } from './push.js'
+import { herregistreer, pushOndersteund, zetMeldingenUit } from './push.js'
 import { nl } from './strings.js'
 import Mark from './Mark.jsx'
 import { themaStijl } from './theme.js'
@@ -15,6 +15,8 @@ import Info from './Info.jsx'
 import Stand from './Stand.jsx'
 import Meldingen from './Meldingen.jsx'
 import Beheer from './Beheer.jsx'
+import { FoutVanger } from './FoutGrens.jsx'
+import UpdateBalk from './UpdateBalk.jsx'
 
 // The Root panel (and the Supabase login library) is only downloaded on /root.
 const RootApp = lazy(() => import('./root/RootApp.jsx'))
@@ -59,6 +61,16 @@ function Kop({ klas, onUitloggen }) {
 }
 
 export default function App() {
+  return (
+    <>
+      <FoutVanger />
+      <UpdateBalk />
+      <Inhoud />
+    </>
+  )
+}
+
+function Inhoud() {
   if (!isGeconfigureerd()) {
     return (
       <main className="page">
@@ -97,6 +109,11 @@ function LeerlingApp() {
   }
 
   async function uitloggen() {
+    try {
+      if (pushOndersteund()) await zetMeldingenUit(sessie.token) // logging out stops notifications on this device
+    } catch {
+      /* ignore */
+    }
     try {
       await rpc('uitloggen', { p_token: sessie.token })
     } catch {

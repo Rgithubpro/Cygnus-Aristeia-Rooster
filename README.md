@@ -17,7 +17,8 @@ Stack: React + Vite + vite-plugin-pwa, Cloudflare Workers (static assets), Supab
 1. **Supabase project** in region Frankfurt. Authentication, Sign In / Providers: **turn off "Allow new users to sign up"**
    (only you need an account).
 2. **SQL Editor:** if you ran the earlier scaffold, run `supabase/reset.sql` first. Then run `supabase/schema.sql`, then
-   `supabase/migratie-v3.sql` (customization), then (for testing) `supabase/seed-demo.sql`.
+   `supabase/migratie-v3.sql` (customization), `supabase/migratie-v4.sql` (robustness), then (for testing)
+   `supabase/seed-demo.sql`.
    Also turn ON Authentication, Sign In / Providers, "Allow anonymous sign-ins": class admins use it only to get permission
    to upload pictures into their own class folder (new sign-ups by email stay off).
 3. **`src/config.js`:** Project URL and anon/publishable key (public values, safe to commit).
@@ -51,6 +52,21 @@ Open `/k/demo` (leerling `leerling-demo`, beheer `beheer-demo`; second class `/k
 
 Log in at `/root`, create the classes (readable passwords are generated, shown once), set the two dates under Instellingen,
 print the QR codes, add the programme under Programma. Give each class its beheerderswachtwoord personally.
+
+## Troubleshooting
+
+| Problem | What to do |
+| --- | --- |
+| Page says "Bijna klaar" | `src/config.js` still has the placeholders. |
+| Notifications do not arrive | Use "Meldingen, Stuur een testmelding". Check that the Edge Function is named `push` (lowercase) and that `select status_code, content from net._http_response order by created desc limit 5;` shows 200. On iPhone the app must be opened from the home screen. |
+| Everything fails to load, login says "Er ging iets mis" | The free Supabase project may be paused (no activity for 7 days). Restore it in the dashboard and make sure the keep-alive secrets are set. |
+| Class is locked ("Te veel pogingen") | Wait 10 minutes, or clear it: `delete from public.inlogpogingen where klas_id = (select id from public.klassen where slug = 'xyz');` |
+| Lost your 2FA phone | In the SQL Editor: `delete from auth.mfa_factors where user_id = (select id from auth.users where email = 'jij@example.com');` then log in and set up 2FA again. |
+| Rotate the cron secret | Set a new `CRON_SECRET` in the function secrets, then `select cron.unschedule('klassenstrijd-herinneringen');` and run `supabase/cron.sql` again with the new value. |
+| Stop reminders after the event | `select cron.unschedule('klassenstrijd-herinneringen');` |
+
+New app versions are applied automatically, but never while someone is typing or has a window open. A small bar
+offers "Nu vernieuwen" in the meantime.
 
 ## Security model
 

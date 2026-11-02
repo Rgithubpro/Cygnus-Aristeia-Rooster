@@ -17,10 +17,10 @@ function useNu() {
 }
 
 export default function Rooster() {
-  const { data, laatst } = useData()
+  const { data, laatst, fout } = useData()
   const nu = useNu()
   const eigen = data.leerling_id
-  const [wie, setWie] = useState(eigen || 'allen')
+  const [gekozenWie, setWie] = useState(eigen || 'allen')
   const [dag, setDag] = useState(() => dagVanVandaag(data.instellingen, nuAmsterdam()) || 1)
   const [printen, setPrinten] = useState(false)
   const [infoPopup, setInfoPopup] = useState(false)
@@ -36,6 +36,8 @@ export default function Rooster() {
   }, [eigen, data.mijn_info])
 
   const naam = Object.fromEntries(data.leerlingen.map((l) => [l.id, l.naam]))
+  // the selected student may have been removed in the meantime
+  const wie = gekozenWie === 'allen' || naam[gekozenWie] ? gekozenWie : eigen || 'allen'
   const zichtbaar = data.activiteiten
     .filter((a) => a.dag === dag)
     .filter((a) => wie === 'allen' || a.globaal || a.leerlingen.includes(wie))
@@ -116,6 +118,7 @@ export default function Rooster() {
         </div>
       )}
 
+      {fout && <p className="note">{nl.verversFout}</p>}
       {laatst && (
         <p className="note">
           {nl.laatstBijgewerkt}: {tijdFormat.format(laatst)}

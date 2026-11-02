@@ -92,9 +92,19 @@ export function splitLinks(tekst = '') {
   return delen
 }
 
-const WOORDEN = ['blauwe', 'rode', 'groene', 'gele', 'snelle', 'grote', 'kleine', 'dappere', 'vrolijke', 'stoere']
-const DIEREN = ['vos', 'uil', 'beer', 'haas', 'zwaan', 'wolf', 'arend', 'otter', 'tijger', 'panda']
-// Readable password such as "blauwe-vos-27".
+const WOORDEN = ['blauwe', 'rode', 'groene', 'gele', 'snelle', 'grote', 'kleine', 'dappere', 'vrolijke', 'stoere',
+  'slimme', 'rustige', 'wilde', 'zachte', 'sterke', 'lenige', 'trotse', 'gekke', 'handige', 'luie',
+  'oranje', 'paarse', 'witte', 'zwarte', 'gouden', 'zilveren', 'warme', 'koude', 'vlugge', 'brave',
+  'jonge', 'oude', 'felle', 'stille', 'luide', 'zoete', 'lekkere', 'knappe', 'mooie', 'sportieve',
+  'dolle', 'blije', 'moedige', 'sluwe', 'nieuwsgierige', 'vriendelijke', 'creatieve', 'eerlijke', 'fitte', 'taaie',
+  'lichte', 'zware', 'ronde', 'platte', 'hoge', 'lage', 'verre', 'nabije', 'vroege', 'late']
+const DIEREN = ['vos', 'uil', 'beer', 'haas', 'zwaan', 'wolf', 'arend', 'otter', 'tijger', 'panda',
+  'leeuw', 'valk', 'das', 'eland', 'kikker', 'koala', 'lynx', 'merel', 'mus', 'pauw',
+  'pinguin', 'raaf', 'specht', 'tapir', 'walvis', 'zebra', 'bever', 'dolfijn', 'egel', 'ezel',
+  'fret', 'geit', 'haai', 'ijsvogel', 'jaguar', 'kameel', 'lama', 'muis', 'neushoorn', 'ooievaar',
+  'paard', 'quokka', 'rat', 'slang', 'tor', 'uiltje', 'vlinder', 'wesp', 'yak', 'zeehond',
+  'aap', 'bij', 'draak', 'eend', 'flamingo', 'gans', 'hert', 'kat', 'kip', 'koe']
+// Readable password such as "blauwe-vos-27" (60 x 60 x 90 = 324,000 combinations).
 export function maakWachtwoord() {
   const r = new Uint32Array(3)
   crypto.getRandomValues(r)

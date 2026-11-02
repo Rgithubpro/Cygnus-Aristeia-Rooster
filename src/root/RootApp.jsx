@@ -24,7 +24,7 @@ export default function RootApp() {
   const [overzicht, setOverzicht] = useState(null)
   const [tab, setTab] = useState('klassen')
 
-  const beoordeel = useCallback(async () => {
+  const beoordeelInner = useCallback(async () => {
     const c = await rootClient()
     const { data } = await c.auth.getSession()
     if (!data.session) return setStap('login')
@@ -37,6 +37,14 @@ export default function RootApp() {
       setStap('geenToegang')
     }
   }, [])
+
+  const beoordeel = useCallback(async () => {
+    try {
+      await beoordeelInner()
+    } catch {
+      setStap('login')
+    }
+  }, [beoordeelInner])
 
   useEffect(() => {
     beoordeel()

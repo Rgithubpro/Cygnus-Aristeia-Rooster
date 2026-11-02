@@ -16,10 +16,11 @@ export default defineConfig({
       strategies: 'injectManifest', // custom service worker (src/sw.js) for push notifications
       srcDir: 'src',
       filename: 'sw.js',
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       injectManifest: { globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'] },
       manifest: {
+        id: '/',
         name: 'Klassenstrijd',
         short_name: 'Klassenstrijd',
         description: 'Jouw rooster voor de klassenstrijd.',
