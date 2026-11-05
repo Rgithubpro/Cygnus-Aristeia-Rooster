@@ -62,7 +62,7 @@ export default function RootApp() {
   return (
     <main className="page breed">
       <header className="head">
-        <Mark size={44} />
+        <Mark size={52} />
         <div className="grow">
           <h1>Klassenstrijd Root</h1>
           <p className="tagline">Organisatie</p>

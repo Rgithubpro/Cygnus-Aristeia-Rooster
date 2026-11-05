@@ -7,12 +7,13 @@ export default function BeheerKlas({ sessie }) {
   const { data, ververs } = useData()
   return (
     <KlasThemaForm
+      key={data.klas.id}
       klas={data.klas}
       opslaan={async (naam, thema) => {
         await rpc('klas_thema_opslaan', { p_token: sessie.token, p_weergavenaam: naam, p_thema: thema })
         await ververs()
       }}
-      upload={(bestand) => uploadKlasAfbeelding(sessie, bestand, 512)}
+      upload={(bestand, maxPx) => uploadKlasAfbeelding(sessie, bestand, maxPx)}
       verwijder={(pad) => verwijderKlasAfbeelding(sessie, pad)}
     />
   )

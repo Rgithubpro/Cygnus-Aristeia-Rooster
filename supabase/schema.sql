@@ -1,4 +1,4 @@
--- Klassenstrijd database (v2). Run once in the Supabase SQL Editor.
+-- Klassenstrijd database (v5 base). Run once in the Supabase SQL Editor, followed by migrations v3-v5.
 -- Principle: no table can be read or written directly. RLS is on with no policies,
 -- table privileges are revoked, and the app only calls the functions below:
 --   * students/admins: functions that check a class session token
@@ -29,6 +29,9 @@ create table public.klassen (
   id uuid primary key default gen_random_uuid(),
   naam text not null check (length(naam) between 1 and 40),
   slug text not null unique check (slug ~ '^[a-z0-9-]{1,40}$'),
+  competitie text not null default 'Algemeen' constraint klassen_competitie_lengte check (length(trim(competitie)) between 1 and 40),
+  weergavenaam text check (weergavenaam is null or length(weergavenaam) <= 40),
+  thema jsonb not null default '{}'::jsonb,
   versie bigint not null default 0
 );
 
@@ -426,7 +429,7 @@ begin
     'versie', i.versie::text || '.' || k.versie::text,
     'rol', s.rol,
     'leerling_id', s.leerling_id,
-    'klas', json_build_object('naam', k.naam),
+    'klas', json_build_object('naam', k.naam, 'weergavenaam', k.weergavenaam, 'thema', k.thema),
     'instellingen', json_build_object(
       'dag1', i.dag1, 'dag2', i.dag2, 'uitslag_tot_dag', i.uitslag_tot_dag,
       'max_leerlingen', i.max_leerlingen,
@@ -494,21 +497,41 @@ begin
   return json_build_object(
     'tot_dag', v_tot,
     'stand', (
-      select coalesce(json_agg(json_build_object('klas', q.naam, 'punten', q.totaal, 'positie', q.pos, 'eigen', q.id = s.klas_id)
-                               order by q.pos, q.naam), '[]'::json)
-        from (select k.id, k.naam, coalesce(sum(p.punten), 0) as totaal,
-                     rank() over (order by coalesce(sum(p.punten), 0) desc) as pos
+      select coalesce(json_agg(json_build_object(
+        'klas', q.label, 'emoji', q.emoji, 'competitie', q.competitie,
+        'punten', q.totaal, 'positie', q.pos, 'eigen', q.id = s.klas_id
+      ) order by q.competitie, q.pos, q.label), '[]'::json)
+        from (
+          select q0.*,
+                 rank() over (partition by q0.competitie order by q0.totaal desc) as pos
+            from (
+              select k.id, coalesce(k.weergavenaam, k.naam) as label, k.thema ->> 'emoji' as emoji,
+                     k.competitie, coalesce(sum(p.punten), 0) as totaal
                 from public.klassen k
                 left join public.punten p on p.klas_id = k.id and p.dag <= v_tot
-               group by k.id, k.naam) q),
-    'onderdelen', (
+               group by k.id, k.naam, k.weergavenaam, k.thema, k.competitie
+            ) q0
+        ) q
+       where v_tot > 1 or q.pos <= 2),
+    'onderdelen', case when v_tot = 1 then '[]'::json else (
       select coalesce(json_agg(json_build_object('dag', o.dag, 'onderdeel', o.onderdeel, 'resultaten', o.res)
                                order by o.dag, o.onderdeel), '[]'::json)
-        from (select p.dag, p.onderdeel,
-                     json_agg(json_build_object('klas', k.naam, 'punten', p.punten, 'eigen', k.id = s.klas_id)
-                              order by p.punten desc, k.naam) as res
+        from (
+          select q.dag, q.onderdeel,
+                 json_agg(json_build_object(
+                   'klas', q.label, 'emoji', q.emoji, 'competitie', q.competitie,
+                   'punten', q.punten, 'positie', q.pos, 'eigen', q.id = s.klas_id
+                 ) order by q.competitie, q.pos, q.label) as res
+            from (
+              select p.dag, p.onderdeel, k.id, coalesce(k.weergavenaam, k.naam) as label,
+                     k.thema ->> 'emoji' as emoji, k.competitie, p.punten,
+                     rank() over (partition by p.dag, p.onderdeel, k.competitie order by p.punten desc) as pos
                 from public.punten p join public.klassen k on k.id = p.klas_id
-               where p.dag <= v_tot group by p.dag, p.onderdeel) o)
+               where p.dag <= v_tot
+            ) q
+           group by q.dag, q.onderdeel
+        ) o
+    ) end
   );
 end $$;
 
@@ -640,7 +663,8 @@ begin
     'instellingen', (select row_to_json(i) from public.instellingen i where i.id = 1),
     'klassen', (
       select coalesce(json_agg(json_build_object(
-        'id', k.id, 'naam', k.naam, 'slug', k.slug,
+        'id', k.id, 'naam', k.naam, 'slug', k.slug, 'competitie', k.competitie,
+        'weergavenaam', k.weergavenaam, 'thema', k.thema,
         'leerlingen', (select count(*) from public.leerlingen l where l.klas_id = k.id),
         'gekoppeld', (select count(distinct z.leerling_id) from public.sessies z where z.klas_id = k.id and z.leerling_id is not null),
         'meldingen', (select count(distinct p.leerling_id) from public.push_abonnementen p join public.leerlingen l on l.id = p.leerling_id where l.klas_id = k.id),
@@ -678,6 +702,19 @@ begin
   perform public._root();
   update public.klassen set naam = trim(p_naam) where id = p_id;
   perform public._bump_klas(p_id);
+  return json_build_object('ok', true);
+end $$;
+
+create or replace function public.root_klas_competitie_opslaan(p_id uuid, p_competitie text) returns json
+language plpgsql security definer set search_path = public as $$
+declare v_competitie text := coalesce(nullif(trim(p_competitie), ''), 'Algemeen');
+begin
+  perform public._root();
+  if length(v_competitie) > 40 then raise exception 'competitie_te_lang'; end if;
+  update public.klassen set competitie = v_competitie where id = p_id;
+  if not found then raise exception 'niet_gevonden'; end if;
+  perform public._bump_klas(p_id);
+  perform public._bump_globaal();
   return json_build_object('ok', true);
 end $$;
 

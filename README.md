@@ -3,12 +3,14 @@
 A mobile-first PWA (Dutch UI) for a two-day school event where classes compete.
 
 - **Leerlingen:** log in with the class password, pick their name, see their own rooster (or the whole class), day messages,
-  "Nu bezig", info/news with images, the ranking (once revealed), print their rooster, and get a notification 5 minutes before each activity.
+  "Nu bezig", info/news with images, a league-based ranking (once revealed), print their rooster, and get a notification 5 minutes before each activity.
 - **Klassenbeheerders** (second class password): manage their own class: students, activities with participants (with overlap
   warnings, own emoji), day messages, personal info per student, announcements with pictures, push messages to their class,
-  and the class look: display name, slogan, accent colour, emoji and logo (Beheer, tab "Uiterlijk").
-- **Root** (`/root`, real login + optional 2FA): create classes and passwords, QR codes, programme items for everyone,
-  global info with images, scores and the "reveal ranking" switch, push to everyone, event dates, system banner, cleanup.
+  and fully customize their class look: name, slogan, logo/app icon, banner, colours, layout, decorations and visible tabs
+  (Beheer, tab "Uiterlijk").
+- **Root** (`/root`, real login + optional 2FA): create classes and passwords, assign classes to leagues, QR codes, programme items for everyone,
+  global info with images, per-event scores and the "reveal ranking" switch. Day 1 reveals only the top two in each league;
+  after day 2 the full points table and event results are shown league by league.
 
 Stack: React + Vite + vite-plugin-pwa, Cloudflare Workers (static assets), Supabase (Postgres, Auth, Storage, Edge Function).
 
@@ -17,7 +19,8 @@ Stack: React + Vite + vite-plugin-pwa, Cloudflare Workers (static assets), Supab
 1. **Supabase project** in region Frankfurt. Authentication, Sign In / Providers: **turn off "Allow new users to sign up"**
    (only you need an account).
 2. **SQL Editor:** if you ran the earlier scaffold, run `supabase/reset.sql` first. Then run `supabase/schema.sql`, then
-   `supabase/migratie-v3.sql` (customization), `supabase/migratie-v4.sql` (robustness), then (for testing)
+   `supabase/migratie-v3.sql` (customization), `supabase/migratie-v4.sql` (robustness),
+   `supabase/migratie-v5.sql` (leagues, standings and expanded class themes), then (for testing)
    `supabase/seed-demo.sql`.
    Also turn ON Authentication, Sign In / Providers, "Allow anonymous sign-ins": class admins use it only to get permission
    to upload pictures into their own class folder (new sign-ups by email stay off).
@@ -36,6 +39,9 @@ Stack: React + Vite + vite-plugin-pwa, Cloudflare Workers (static assets), Supab
 6. **Keep-alive:** GitHub repo secrets `SUPABASE_URL` and `SUPABASE_KEY`. `.github/workflows/keep-alive.yml` pings the database every
    3 days so the free project never pauses. GitHub disables scheduled workflows after 60 days without repo activity.
 7. **Cloudflare Workers Builds:** build `npm run build`, deploy `npx wrangler deploy`. No variables needed.
+
+Existing installations: run `supabase/migratie-v5.sql` in the SQL Editor after `migratie-v4.sql` to add leagues and the new
+class customization and standings behavior. All existing classes are assigned to the default league "Algemeen".
 
 ## Check that notifications work
 

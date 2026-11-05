@@ -223,20 +223,108 @@ code { background: var(--bg); border-radius: 0.3rem; padding: 0.05rem 0.35rem; }
 }
 
 /* ---------- v3: class theme, logo, emoji picker ---------- */
-.thema { --accent: var(--a-licht, #2f56d9); --accent-ink: var(--ink-licht, #ffffff); }
-@media (prefers-color-scheme: dark) {
-  .thema { --accent: var(--a-donker, #8fa8ff); --accent-ink: var(--ink-donker, #0e1426); }
+.thema {
+  --bg: var(--klas-bg, #eef1f7);
+  --surface: var(--klas-surface, #ffffff);
+  --ink: var(--klas-ink, #14203d);
+  --ink2: var(--klas-ink2, #4a5675);
+  --line: var(--klas-line, #d5dbe8);
+  --accent: var(--a-licht, #2f56d9);
+  --accent-ink: var(--ink-licht, #ffffff);
+  --moved: #8a4b00;
+  --moved-bg: #fff1d6;
+  --cancelled: #a3262e;
+  --cancelled-bg: #fde3e5;
+  color-scheme: light;
 }
+.page.thema { min-height: 100vh; background: var(--bg); color: var(--ink); }
+.thema .card,
+.thema .segment,
+.thema .lessons,
+.thema .stand li,
+.thema .activiteit,
+.thema .keuze,
+.thema .dagbericht,
+.thema .klas-banner,
+.thema .keuzelijst > li:not(:has(button.keuze)) {
+  color: var(--klas-card-ink, var(--ink));
+}
+.thema .card .note,
+.thema .segment button,
+.thema .activiteit .meta,
+.thema .activiteit .voor,
+.thema .dagbericht .meta {
+  color: var(--klas-card-ink2, var(--ink2));
+}
+.thema .segment button[aria-selected="true"] { color: var(--accent-ink); }
+.page.thema.layout-compact { max-width: 29rem; gap: 1.2rem; }
+.page.thema.layout-breed { max-width: 48rem; }
+.page.thema.layout-compact .card { padding: 0.75rem; }
+.page.thema.layout-compact .stack { gap: 0.7rem; }
 .klas-logo { width: 44px; height: 44px; border-radius: 0.6rem; object-fit: cover; flex: none; background: #fff; }
 .klas-emoji { font-size: 2rem; line-height: 1; flex: none; width: 44px; text-align: center; }
-.head.voorbeeld { background: var(--surface); border: 1px solid var(--line); border-radius: 0.7rem; padding: 0.7rem; }
-.head.voorbeeld h2 { font-size: 1.25rem; }
 span.btn.klein { cursor: default; display: inline-flex; align-items: center; }
 
 .kleuren { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
 .kleur { width: 2.4rem; height: 2.4rem; border-radius: 50%; border: 2px solid var(--line); cursor: pointer; padding: 0; }
 .kleur.gekozen { outline: 3px solid var(--ink); outline-offset: 2px; }
 input[type="color"] { width: 2.75rem; padding: 0.15rem; }
+
+.thema-form details { border-top: 1px solid var(--line); padding-top: 0.75rem; }
+.thema-form details > summary { cursor: pointer; font-weight: 700; }
+.thema-form fieldset { border: 0; padding: 0; }
+.thema-form legend { font-weight: 700; }
+.thema-voorbeeld {
+  display: grid;
+  gap: 0.7rem;
+  overflow: hidden;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 0.9rem;
+  background: var(--klas-bg, #eef1f7);
+  color: var(--klas-ink, #14203d);
+}
+.thema-voorbeeld .head {
+  padding: 0.65rem;
+  border: 1px solid var(--klas-line, #d5dbe8);
+  border-radius: 0.65rem;
+  background: var(--klas-surface, #fff);
+  color: var(--klas-card-ink, #14203d);
+}
+.thema-voorbeeld .head h2 { font-size: 1.2rem; }
+.thema-voorbeeld .tagline { color: var(--klas-card-ink2, #4a5675); }
+.thema-voorbeeld-banner { width: 100%; max-height: 8rem; object-fit: cover; border-radius: 0.6rem; }
+.thema-voorbeeld-kaart {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--klas-line, #d5dbe8);
+  border-radius: 0.55rem;
+  background: var(--klas-surface, #fff);
+  color: var(--klas-card-ink2, #4a5675);
+  font-size: 0.9rem;
+}
+.thema-voorbeeld .klas-banner-tekst {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--klas-line, #d5dbe8);
+  border-radius: 0.55rem;
+  background: var(--klas-surface, #fff);
+}
+.klas-decoratie { flex: none; font-size: 1.7rem; line-height: 1; }
+.klas-banner {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 0.8rem;
+  background: var(--surface);
+}
+.klas-banner img { display: block; width: 100%; max-height: 12rem; object-fit: cover; }
+.klas-banner p { padding: 0.75rem 1rem; font-weight: 600; }
+.thema .activiteit.c-blauw { --kc: #2f56d9; }
+.thema .activiteit.c-groen { --kc: #1f8a4c; }
+.thema .activiteit.c-amber { --kc: #c98a0b; }
+.thema .activiteit.c-paars { --kc: #7a3cc4; }
+.thema .activiteit.c-koraal { --kc: #d9534f; }
+.thema .activiteit.c-grijs { --kc: #6b7280; }
+.thema .nu-badge { color: #fff; }
+.thema .ok { color: #1f7a45; }
 
 .emoji-in { width: 5rem; text-align: center; font-size: 1.4rem; }
 .emoji-rooster { display: grid; grid-template-columns: repeat(auto-fill, minmax(2.6rem, 1fr)); gap: 0.25rem; }

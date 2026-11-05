@@ -1,6 +1,27 @@
 import { useEffect, useMemo, useState } from 'react'
 import { rootRpc } from './client.js'
 
+function groepeer(klassen) {
+  const groepen = new Map()
+  for (const klas of klassen) {
+    const competitie = klas.competitie || 'Algemeen'
+    if (!groepen.has(competitie)) groepen.set(competitie, [])
+    groepen.get(competitie).push(klas)
+  }
+  return [...groepen.entries()].sort(([a], [b]) => a.localeCompare(b, 'nl'))
+}
+
+function rangschik(klassen) {
+  const gesorteerd = [...klassen].sort((a, b) => b.punten - a.punten || a.naam.localeCompare(b.naam, 'nl'))
+  let vorigePunten
+  let positie = 0
+  return gesorteerd.map((klas, index) => {
+    if (index === 0 || klas.punten !== vorigePunten) positie = index + 1
+    vorigePunten = klas.punten
+    return { ...klas, positie }
+  })
+}
+
 // Scores per class per game. Students only see days up to "zichtbaar t/m dag".
 export default function RootStand({ overzicht, herlaad }) {
   const [rijen, setRijen] = useState(null)
@@ -23,7 +44,7 @@ export default function RootStand({ overzicht, herlaad }) {
   const totaal = useMemo(() => {
     const t = Object.fromEntries(overzicht.klassen.map((k) => [k.id, 0]))
     for (const r of rijen || []) if (r.klas_id in t) t[r.klas_id] += r.punten
-    return overzicht.klassen.map((k) => ({ ...k, punten: t[k.id] })).sort((a, b) => b.punten - a.punten)
+    return overzicht.klassen.map((k) => ({ ...k, punten: t[k.id] }))
   }, [rijen, overzicht])
 
   function laadOnderdeel(o) {
@@ -58,7 +79,7 @@ export default function RootStand({ overzicht, herlaad }) {
     <div className="stack">
       <div className="card stack">
         <h2>Zichtbaar voor leerlingen</h2>
-        <p className="note">De database geeft de stand alleen vrij voor de dagen die hier zijn gekozen.</p>
+        <p className="note">Na dag 1 zien leerlingen de top twee per competitie. Na dag 2 zien ze alle klassen en uitslagen, steeds alleen binnen hun eigen competitie.</p>
         <div className="segment">
           {[[0, 'Niets'], [1, 'Dag 1'], [2, 'Dag 1 + 2']].map(([d, l]) => (
             <button key={d} aria-selected={zicht === d} onClick={() => zichtbaar(d)}>{l}</button>
@@ -68,6 +89,7 @@ export default function RootStand({ overzicht, herlaad }) {
 
       <form className="card stack" onSubmit={bewaar}>
         <h2>Punten invoeren</h2>
+        <p className="note">Punten blijven per onderdeel invoerbaar. Klassen worden hieronder per league gegroepeerd.</p>
         <div className="rij">
           <label className="veld">
             <span>Dag</span>
@@ -82,14 +104,19 @@ export default function RootStand({ overzicht, herlaad }) {
             <datalist id="onderdelen">{onderdelen.map((o) => <option key={`${o.dag}${o.onderdeel}`} value={o.onderdeel} />)}</datalist>
           </label>
         </div>
-        <ul className="vinklijst hoog">
-          {overzicht.klassen.map((k) => (
-            <li key={k.id} className="rij tussen">
-              <span>{k.naam}</span>
-              <input className="getal" type="number" step="1" value={waarden[k.id] ?? ''} onChange={(e) => setWaarden({ ...waarden, [k.id]: e.target.value })} aria-label={`Punten ${k.naam}`} />
-            </li>
-          ))}
-        </ul>
+        {groepeer(overzicht.klassen).map(([competitie, klassen]) => (
+          <section className="stack klein-gap" key={competitie}>
+            <h3>{competitie}</h3>
+            <ul className="vinklijst hoog">
+              {klassen.map((k) => (
+                <li key={k.id} className="rij tussen">
+                  <span>{k.naam}</span>
+                  <input className="getal" type="number" step="1" value={waarden[k.id] ?? ''} onChange={(e) => setWaarden({ ...waarden, [k.id]: e.target.value })} aria-label={`Punten ${k.naam}`} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
         {fout && <p className="fout">{fout}</p>}
         {ok && <p className="ok">✓ Opgeslagen</p>}
         <button className="btn" disabled={!onderdeel.trim()}>Opslaan</button>
@@ -116,11 +143,16 @@ export default function RootStand({ overzicht, herlaad }) {
 
       <div className="card stack">
         <h2>Totaalstand (alleen voor jou, alle dagen)</h2>
-        <ol className="stand">
-          {totaal.map((k, i) => (
-            <li key={k.id}><span className="positie">{i + 1}</span><span className="grow">{k.naam}</span><strong>{k.punten}</strong></li>
-          ))}
-        </ol>
+        {groepeer(totaal).map(([competitie, klassen]) => (
+          <section className="stack klein-gap" key={competitie}>
+            <h3>{competitie}</h3>
+            <ol className="stand">
+              {rangschik(klassen).map((k) => (
+                <li key={k.id}><span className="positie">{k.positie}</span><span className="grow">{k.naam}</span><strong>{k.punten}</strong></li>
+              ))}
+            </ol>
+          </section>
+        ))}
       </div>
     </div>
   )

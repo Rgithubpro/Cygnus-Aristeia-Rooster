@@ -48,10 +48,10 @@ export default function RootKlassen({ overzicht, herlaad }) {
               </button>
             </div>
             <span className="meta">
-              {k.leerlingen} leerlingen, {k.gekoppeld} gekoppeld, {k.meldingen} met meldingen, {k.activiteiten} activiteiten
+              League: {k.competitie || 'Algemeen'} · {k.leerlingen} leerlingen, {k.gekoppeld} gekoppeld, {k.meldingen} met meldingen, {k.activiteiten} activiteiten
               {k.laatst_gezien ? `, laatst actief ${new Date(k.laatst_gezien).toLocaleString('nl-NL', { dateStyle: 'short', timeStyle: 'short' })}` : ''}
             </span>
-            {open === k.id && <KlasDetail klas={k} herlaad={herlaad} onWeg={() => setOpen(null)} />}
+            {open === k.id && <KlasDetail klas={k} competities={overzicht.klassen.map((r) => r.competitie).filter(Boolean)} herlaad={herlaad} onWeg={() => setOpen(null)} />}
           </li>
         ))}
       </ul>
@@ -153,10 +153,11 @@ function NieuweKlas({ herlaad }) {
   )
 }
 
-function KlasDetail({ klas, herlaad, onWeg }) {
+function KlasDetail({ klas, competities, herlaad, onWeg }) {
   const [detail, setDetail] = useState(null)
   const [qr, setQr] = useState('')
   const [naam, setNaam] = useState(klas.naam)
+  const [competitie, setCompetitie] = useState(klas.competitie || 'Algemeen')
   const [namen, setNamen] = useState('')
   const [nieuwWw, setNieuwWw] = useState(null)
   const [fout, setFout] = useState('')
@@ -202,6 +203,18 @@ function KlasDetail({ klas, herlaad, onWeg }) {
       </div>
 
       <div className="rij">
+        <label className="veld grow">
+          <span>Competitie / league</span>
+          <input value={competitie} onChange={(e) => setCompetitie(e.target.value)} list={`competities-${klas.id}`} maxLength={40} />
+          <datalist id={`competities-${klas.id}`}>{[...new Set(competities)].map((naam) => <option key={naam} value={naam} />)}</datalist>
+          <small className="note">Klassen met dezelfde naam worden alleen met elkaar vergeleken in de stand.</small>
+        </label>
+        <button className="btn ghost klein" onClick={() => doe(() => rootRpc('root_klas_competitie_opslaan', { p_id: klas.id, p_competitie: competitie }))}>
+          Opslaan
+        </button>
+      </div>
+
+      <div className="rij">
         <button className="btn ghost klein" onClick={() => zetWw('lw')}>Nieuw leerlingwachtwoord</button>
         <button className="btn ghost klein" onClick={() => zetWw('bw')}>Nieuw beheerderswachtwoord</button>
         <button className="btn ghost klein" onClick={() => doe(() => rootRpc('root_sessies_beeindigen', { p_id: klas.id }))}>Alle apparaten uitloggen</button>
@@ -213,14 +226,15 @@ function KlasDetail({ klas, herlaad, onWeg }) {
       )}
 
       <details className="stack">
-        <summary>Uiterlijk van deze klas (naam, kleur, logo, emoji)</summary>
+        <summary>Uiterlijk en indeling van deze klas</summary>
         <KlasThemaForm
+          key={klas.id}
           klas={klas}
           opslaan={async (weergavenaam, thema) => {
             await rootRpc('root_klas_thema_opslaan', { p_id: klas.id, p_weergavenaam: weergavenaam, p_thema: thema })
             await herlaad()
           }}
-          upload={(bestand) => uploadAfbeelding(bestand, klas.id, 512)}
+          upload={(bestand, maxPx) => uploadAfbeelding(bestand, klas.id, maxPx)}
           verwijder={verwijderAfbeelding}
         />
       </details>
