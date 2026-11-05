@@ -165,6 +165,13 @@ export const nl = {
   verversen: 'Vernieuwen',
   opgeslagen: 'Opgeslagen',
 
+  leegPagina: 'Deze pagina is nog leeg.',
+  // stand (leagues)
+  standTopUitleg: 'Dag 1: alleen de beste klassen van elke league.',
+  standTopVan: 'Top',
+  jouwLeague: 'jouw league',
+  andereLeagues: 'Andere leagues',
+  geenKlassenLeague: 'Nog geen klassen met punten.',
   // uiterlijk en afbeeldingen
   uiterlijk: 'Uiterlijk',
   emoji: 'Emoji',

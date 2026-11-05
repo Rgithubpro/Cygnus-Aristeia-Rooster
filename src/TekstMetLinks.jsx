@@ -35,3 +35,30 @@ export default function TekstMetLinks({ tekst }) {
     </p>
   )
 }
+
+// A link with its own title (class page). Opens only after a confirmation.
+export function LinkKnop({ url, tekst }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <>
+      <button className="btn ghost link-knop" onClick={() => setOpen(true)}>
+        🔗 {tekst || url}
+      </button>
+      {open && (
+        <Modal titel={`🔗 ${nl.externeLink}`} onSluit={() => setOpen(false)}>
+          <p className="woord-af">{url}</p>
+          <p>{nl.linkVraag}</p>
+          <button
+            className="btn"
+            onClick={() => {
+              window.open(url, '_blank', 'noopener,noreferrer')
+              setOpen(false)
+            }}
+          >
+            {nl.jaGaDoor}
+          </button>
+        </Modal>
+      )}
+    </>
+  )
+}

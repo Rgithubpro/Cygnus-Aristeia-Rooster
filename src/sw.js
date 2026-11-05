@@ -22,7 +22,7 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(d.title || 'Klassenstrijd', {
       body: d.body || '',
-      icon: '/icons/icon-192.png',
+      icon: d.icon || '/icons/icon-192.png',
       badge: '/icons/icon-192.png',
       image: d.image || undefined,
       vibrate: [200, 100, 200],

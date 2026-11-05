@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { rootRpc } from './client.js'
+import RootLeagues from './RootLeagues.jsx'
 
 // Scores per class per game. Students only see days up to "zichtbaar t/m dag".
 export default function RootStand({ overzicht, herlaad }) {
@@ -56,15 +57,7 @@ export default function RootStand({ overzicht, herlaad }) {
 
   return (
     <div className="stack">
-      <div className="card stack">
-        <h2>Zichtbaar voor leerlingen</h2>
-        <p className="note">De database geeft de stand alleen vrij voor de dagen die hier zijn gekozen.</p>
-        <div className="segment">
-          {[[0, 'Niets'], [1, 'Dag 1'], [2, 'Dag 1 + 2']].map(([d, l]) => (
-            <button key={d} aria-selected={zicht === d} onClick={() => zichtbaar(d)}>{l}</button>
-          ))}
-        </div>
-      </div>
+      <RootLeagues overzicht={overzicht} herlaad={herlaad} />
 
       <form className="card stack" onSubmit={bewaar}>
         <h2>Punten invoeren</h2>

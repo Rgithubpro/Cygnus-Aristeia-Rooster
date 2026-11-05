@@ -1,18 +1,22 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
-import { afbeeldingUrl, isGeconfigureerd } from './config.js'
+import { isGeconfigureerd } from './config.js'
 import { rpc, setBijOngeldigeSessie } from './api.js'
 import { laadSessie, bewaarSessie, wisAlles } from './session.js'
 import { DataProvider, useData } from './data.jsx'
 import { herregistreer, pushOndersteund, zetMeldingenUit } from './push.js'
 import { nl } from './strings.js'
-import Mark from './Mark.jsx'
-import { themaStijl } from './theme.js'
+import { ThemaProvider, useThema } from './themaContext.jsx'
+import { TAB_STANDAARD, tabsVan } from './themaModel.js'
+import { useAppIdentiteit } from './pwaIdentiteit.js'
+import Kop from './Kop.jsx'
 import Banner from './Banner.jsx'
-import Login from './Login.jsx'
+import Decoratie, { EmojiStrook } from './Decoratie.jsx'
+import LoginScherm from './Login.jsx'
 import KiesNaam from './KiesNaam.jsx'
 import Rooster from './Rooster.jsx'
 import Info from './Info.jsx'
 import Stand from './Stand.jsx'
+import Pagina from './Pagina.jsx'
 import Meldingen from './Meldingen.jsx'
 import Beheer from './Beheer.jsx'
 import { FoutVanger } from './FoutGrens.jsx'
@@ -34,30 +38,6 @@ function useOnline() {
     }
   }, [])
   return online
-}
-
-function Kop({ klas, onUitloggen }) {
-  const thema = klas?.thema || {}
-  return (
-    <header className="head">
-      {thema.logo ? (
-        <img className="klas-logo" src={afbeeldingUrl(thema.logo)} alt="" />
-      ) : thema.emoji ? (
-        <span className="klas-emoji" aria-hidden="true">{thema.emoji}</span>
-      ) : (
-        <Mark size={44} />
-      )}
-      <div className="grow">
-        <h1>{klas ? klas.weergavenaam || klas.naam : nl.title}</h1>
-        <p className="tagline">{klas ? thema.slogan || nl.title : nl.tagline}</p>
-      </div>
-      {onUitloggen && (
-        <button className="btn ghost klein" onClick={onUitloggen}>
-          {nl.uitloggen}
-        </button>
-      )}
-    </header>
-  )
 }
 
 export default function App() {
@@ -129,54 +109,68 @@ function LeerlingApp() {
     </p>
   )
 
-  if (!sessie) {
-    return (
-      <main className="page">
-        <Kop />
-        {offline}
-        <Login onKlaar={update} />
-      </main>
-    )
-  }
+  if (!sessie) return <LoginScherm onKlaar={update} offline={offline} />
 
   return (
     <DataProvider sessie={sessie}>
-      <Shell sessie={sessie} update={update} uitloggen={uitloggen} offline={offline} />
+      <ThemaDoos sessie={sessie} update={update} uitloggen={uitloggen} offline={offline} />
     </DataProvider>
   )
 }
 
-function Shell({ sessie, update, uitloggen, offline }) {
+// Applies the class look (live preview of unsaved edits included) around everything the student sees.
+function ThemaDoos(props) {
+  const { data } = useData()
+  const klas = data?.klas ?? props.sessie.klas
+  return (
+    <ThemaProvider opgeslagen={klas?.thema}>
+      <Shell {...props} klas={klas} />
+    </ThemaProvider>
+  )
+}
+
+function Kader({ klas, thema, onUitloggen, offline, banner, children }) {
+  return (
+    <>
+      <Decoratie thema={thema} />
+      <main className="page">
+        <Kop klas={klas} thema={thema} onUitloggen={onUitloggen} />
+        <EmojiStrook thema={thema} />
+        {banner}
+        {offline}
+        {children}
+      </main>
+    </>
+  )
+}
+
+function Shell({ sessie, update, uitloggen, offline, klas }) {
   const { data, fout } = useData()
-  const [tab, setTab] = useState('rooster')
+  const { thema, opgeslagen } = useThema()
+  const [tab, setTab] = useState(() => opgeslagen.start_tab || tabsVan(opgeslagen)[0][0])
   const [kiesOpnieuw, setKiesOpnieuw] = useState(false)
   const [meldingen, setMeldingen] = useState(false)
   const leerlingId = data?.leerling_id ?? sessie.leerlingId
+
+  useAppIdentiteit(klas ? klas.weergavenaam || klas.naam : null, sessie.klas?.slug, opgeslagen)
 
   // keep this device linked to the right student for notifications
   useEffect(() => {
     if (leerlingId) herregistreer(sessie.token)
   }, [leerlingId, sessie.token])
 
-  const klas = data?.klas ?? sessie.klas
-  const stijl = themaStijl(klas?.thema)
-
   if (!data) {
     return (
-      <main className="page thema" style={stijl}>
-        <Kop klas={klas} onUitloggen={uitloggen} />
-        {offline}
+      <Kader klas={klas} thema={thema} onUitloggen={uitloggen} offline={offline}>
         <p className="note">{fout ? nl.laadFout : nl.laden}</p>
-      </main>
+      </Kader>
     )
   }
 
   const moetNaamKiezen = !leerlingId && !sessie.naamOvergeslagen
   if (moetNaamKiezen || kiesOpnieuw) {
     return (
-      <main className="page thema" style={stijl}>
-        <Kop klas={klas} onUitloggen={uitloggen} />
-        {offline}
+      <Kader klas={klas} thema={thema} onUitloggen={uitloggen} offline={offline}>
         <KiesNaam
           sessie={sessie}
           onKlaar={(s) => {
@@ -185,50 +179,41 @@ function Shell({ sessie, update, uitloggen, offline }) {
           }}
           onAnnuleer={kiesOpnieuw ? () => setKiesOpnieuw(false) : undefined}
         />
-      </main>
+      </Kader>
     )
   }
 
-  const tabs = [
-    ['rooster', nl.tabRooster],
-    ['info', nl.tabInfo],
-    ['stand', nl.tabStand],
-    ...(sessie.rol === 'beheer' ? [['beheer', nl.tabBeheer]] : []),
-  ]
+  const tabs = [...tabsVan(thema, TAB_STANDAARD), ...(sessie.rol === 'beheer' ? [['beheer', nl.tabBeheer]] : [])]
+  const actief = tabs.some(([id]) => id === tab) ? tab : tabs[0][0]
 
   return (
-    <main className="page thema" style={stijl}>
-      <Kop klas={klas} onUitloggen={uitloggen} />
-      <Banner banner={data.instellingen.banner} />
-      {offline}
+    <Kader klas={klas} thema={thema} onUitloggen={uitloggen} offline={offline} banner={<Banner banner={data.instellingen.banner} />}>
       <div className="rij">
         <button className="btn ghost klein" onClick={() => setMeldingen(true)}>
           🔔 {nl.meldingen}
         </button>
         {leerlingId && (
-          <button
-            className="btn ghost klein"
-            onClick={() => window.confirm(nl.zekerAnderPersoon) && setKiesOpnieuw(true)}
-          >
+          <button className="btn ghost klein" onClick={() => window.confirm(nl.zekerAnderPersoon) && setKiesOpnieuw(true)}>
             {nl.anderPersoon}
           </button>
         )}
       </div>
 
-      <nav className="segment" role="tablist">
+      <nav className="segment scroll" role="tablist">
         {tabs.map(([id, label]) => (
-          <button key={id} role="tab" aria-selected={tab === id} onClick={() => setTab(id)}>
+          <button key={id} role="tab" aria-selected={actief === id} onClick={() => setTab(id)}>
             {label}
           </button>
         ))}
       </nav>
 
-      {tab === 'rooster' && <Rooster />}
-      {tab === 'info' && <Info />}
-      {tab === 'stand' && <Stand sessie={sessie} />}
-      {tab === 'beheer' && sessie.rol === 'beheer' && <Beheer sessie={sessie} />}
+      {actief === 'rooster' && <Rooster />}
+      {actief === 'info' && <Info />}
+      {actief === 'stand' && <Stand sessie={sessie} />}
+      {actief === 'pagina' && <Pagina sessie={sessie} />}
+      {actief === 'beheer' && sessie.rol === 'beheer' && <Beheer sessie={sessie} />}
 
       {meldingen && <Meldingen sessie={sessie} leerlingId={leerlingId} onSluit={() => setMeldingen(false)} />}
-    </main>
+    </Kader>
   )
 }

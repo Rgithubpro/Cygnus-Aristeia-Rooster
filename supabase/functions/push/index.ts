@@ -34,7 +34,11 @@ const cors = {
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } })
 
-type Sub = { id: string; endpoint: string; p256dh: string; auth: string }
+type Sub = { id: string; endpoint: string; p256dh: string; auth: string; logo?: string | null }
+
+// The class logo (if the class has one) becomes the notification icon.
+const iconVan = (sub: Sub) =>
+  sub.logo ? `${SUPABASE_URL}/storage/v1/object/public/afbeeldingen/${sub.logo}` : undefined
 
 async function verstuur(items: { sub: Sub; payload: object }[]) {
   let ok = 0
@@ -99,12 +103,15 @@ Deno.serve(async (req) => {
       if (rijen.length === 0) return json({ ok: true, verstuurd: 0 })
       const ids = [...new Set(rijen.map((r) => r.leerling as string))]
       const subs = await sql<(Sub & { leerling_id: string })[]>`
-        select id, leerling_id, endpoint, p256dh, auth from public.push_abonnementen
-         where leerling_id = any(${sql.array(ids)}::uuid[])`
+        select p.id, p.leerling_id, p.endpoint, p.p256dh, p.auth, k.thema ->> 'logo' as logo
+          from public.push_abonnementen p
+          join public.leerlingen l on l.id = p.leerling_id
+          join public.klassen k on k.id = l.klas_id
+         where p.leerling_id = any(${sql.array(ids)}::uuid[])`
       const items = rijen.flatMap((r) =>
         subs.filter((s) => s.leerling_id === r.leerling).map((sub) => ({
           sub,
-          payload: { title: `Straks: ${r.onderwerp}`, body: `${r.starttijd}${r.plek ? `, ${r.plek}` : ''}`, tag: 'herinnering', url: '/' },
+          payload: { title: `Straks: ${r.onderwerp}`, body: `${r.starttijd}${r.plek ? `, ${r.plek}` : ''}`, tag: 'herinnering', url: '/', icon: iconVan(sub) },
         })))
       const res = await verstuur(items)
       return json({ ok: true, verstuurd: res.ok, mislukt: res.mislukt, fouten: res.fouten })
@@ -119,8 +126,11 @@ Deno.serve(async (req) => {
         return json({ ok: false, error: 'sessie_ongeldig' }, 401)
       }
       if (!leerling) return json({ ok: false, error: 'kies_eerst_een_naam' }, 400)
-      const subs = await sql<Sub[]>`select id, endpoint, p256dh, auth from public.push_abonnementen where leerling_id = ${leerling}::uuid`
-      const res = await verstuur(subs.map((sub) => ({ sub, payload: { title: 'Testmelding', body: 'Het werkt! Zo zie je straks je herinneringen.', tag: 'test', url: '/' } })))
+      const subs = await sql<Sub[]>`
+        select p.id, p.endpoint, p.p256dh, p.auth, k.thema ->> 'logo' as logo from public.push_abonnementen p
+          join public.leerlingen l on l.id = p.leerling_id join public.klassen k on k.id = l.klas_id
+         where p.leerling_id = ${leerling}::uuid`
+      const res = await verstuur(subs.map((sub) => ({ sub, payload: { title: 'Testmelding', body: 'Het werkt! Zo zie je straks je herinneringen.', tag: 'test', url: '/', icon: iconVan(sub) } })))
       return json({ ok: true, verstuurd: res.ok, mislukt: res.mislukt, apparaten: subs.length, fouten: res.fouten })
     }
 
@@ -150,23 +160,26 @@ Deno.serve(async (req) => {
       let subs: Sub[]
       if (body.doelgroep === 'iedereen') {
         if (!isRoot) return json({ ok: false, error: 'geen_rechten' }, 403)
-        subs = await sql<Sub[]>`select id, endpoint, p256dh, auth from public.push_abonnementen`
+        subs = await sql<Sub[]>`
+          select p.id, p.endpoint, p.p256dh, p.auth, k.thema ->> 'logo' as logo from public.push_abonnementen p
+            join public.leerlingen l on l.id = p.leerling_id join public.klassen k on k.id = l.klas_id`
       } else if (body.doelgroep === 'klas') {
         const klas = isRoot ? body.klas_id : eigenKlas
         if (!klas) return json({ ok: false, error: 'klas_verplicht' }, 400)
         subs = await sql<Sub[]>`
-          select p.id, p.endpoint, p.p256dh, p.auth from public.push_abonnementen p
-            join public.leerlingen l on l.id = p.leerling_id where l.klas_id = ${klas}::uuid`
+          select p.id, p.endpoint, p.p256dh, p.auth, k.thema ->> 'logo' as logo from public.push_abonnementen p
+            join public.leerlingen l on l.id = p.leerling_id join public.klassen k on k.id = l.klas_id
+           where l.klas_id = ${klas}::uuid`
       } else if (body.doelgroep === 'leerling') {
         subs = await sql<Sub[]>`
-          select p.id, p.endpoint, p.p256dh, p.auth from public.push_abonnementen p
-            join public.leerlingen l on l.id = p.leerling_id
+          select p.id, p.endpoint, p.p256dh, p.auth, k.thema ->> 'logo' as logo from public.push_abonnementen p
+            join public.leerlingen l on l.id = p.leerling_id join public.klassen k on k.id = l.klas_id
            where l.id = ${body.leerling_id}::uuid and (${isRoot}::boolean or l.klas_id = ${eigenKlas}::uuid)`
       } else {
         return json({ ok: false, error: 'onbekende_doelgroep' }, 400)
       }
 
-      const res = await verstuur(subs.map((sub) => ({ sub, payload: { title: titel, body: tekst, image: afbeelding, url: '/' } })))
+      const res = await verstuur(subs.map((sub) => ({ sub, payload: { title: titel, body: tekst, image: afbeelding, url: '/', icon: iconVan(sub) } })))
       return json({ ok: true, verstuurd: res.ok, mislukt: res.mislukt, apparaten: subs.length, fouten: res.fouten })
     }
 

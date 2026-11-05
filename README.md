@@ -17,7 +17,7 @@ Stack: React + Vite + vite-plugin-pwa, Cloudflare Workers (static assets), Supab
 1. **Supabase project** in region Frankfurt. Authentication, Sign In / Providers: **turn off "Allow new users to sign up"**
    (only you need an account).
 2. **SQL Editor:** if you ran the earlier scaffold, run `supabase/reset.sql` first. Then run `supabase/schema.sql`, then
-   `supabase/migratie-v3.sql` (customization), `supabase/migratie-v4.sql` (robustness), then (for testing)
+   `supabase/migratie-v3.sql` (customization), `supabase/migratie-v4.sql` (robustness), `supabase/migratie-v5.sql` (leagues + customization), then (for testing)
    `supabase/seed-demo.sql`.
    Also turn ON Authentication, Sign In / Providers, "Allow anonymous sign-ins": class admins use it only to get permission
    to upload pictures into their own class folder (new sign-ups by email stay off).
@@ -52,6 +52,18 @@ Open `/k/demo` (leerling `leerling-demo`, beheer `beheer-demo`; second class `/k
 
 Log in at `/root`, create the classes (readable passwords are generated, shown once), set the two dates under Instellingen,
 print the QR codes, add the programme under Programma. Give each class its beheerderswachtwoord personally.
+
+## Leagues and standings
+
+Create leagues in `/root` (Stand) and assign classes to them. Day 1: students see only the top N per league (points optional);
+day 2: every class with points. Enter one number per class per day under "Snelle puntentelling", or per game.
+
+## Class customization
+
+Class admins customize everything under Beheer, tab "Uiterlijk": name, slogan, logo, banner, mascot, colour palette or own colours,
+fonts, shapes, header and card styles, what is shown, background pattern, emoji strip/rain, tabs and a free-form class page.
+The app previews changes live. The class logo and colours also theme the login link, notifications and (best effort) the installed
+app icon: install the app after opening your class link.
 
 ## Troubleshooting
 

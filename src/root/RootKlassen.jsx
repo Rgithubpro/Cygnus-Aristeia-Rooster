@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { rootRpc, uploadAfbeelding, verwijderAfbeelding } from './client.js'
-import KlasThemaForm from '../KlasThemaForm.jsx'
+import KlasEditor from '../editor/KlasEditor.jsx'
 import { maakWachtwoord, slugVan } from '../util.js'
 
 const link = (slug) => `${location.origin}/k/${slug}`
@@ -31,7 +31,7 @@ export default function RootKlassen({ overzicht, herlaad }) {
 
   return (
     <div className="stack">
-      <NieuweKlas herlaad={herlaad} />
+      <NieuweKlas herlaad={herlaad} leagues={overzicht.leagues || []} />
       <div className="rij tussen">
         <h2>{overzicht.klassen.length} klassen</h2>
         <button className="btn ghost klein" onClick={printQr} disabled={overzicht.klassen.length === 0}>
@@ -51,7 +51,7 @@ export default function RootKlassen({ overzicht, herlaad }) {
               {k.leerlingen} leerlingen, {k.gekoppeld} gekoppeld, {k.meldingen} met meldingen, {k.activiteiten} activiteiten
               {k.laatst_gezien ? `, laatst actief ${new Date(k.laatst_gezien).toLocaleString('nl-NL', { dateStyle: 'short', timeStyle: 'short' })}` : ''}
             </span>
-            {open === k.id && <KlasDetail klas={k} herlaad={herlaad} onWeg={() => setOpen(null)} />}
+            {open === k.id && <KlasDetail klas={k} leagues={overzicht.leagues || []} herlaad={herlaad} onWeg={() => setOpen(null)} />}
           </li>
         ))}
       </ul>
@@ -74,12 +74,13 @@ export default function RootKlassen({ overzicht, herlaad }) {
   )
 }
 
-function NieuweKlas({ herlaad }) {
+function NieuweKlas({ herlaad, leagues }) {
   const [naam, setNaam] = useState('')
   const [slug, setSlug] = useState('')
   const [lw, setLw] = useState(maakWachtwoord)
   const [bw, setBw] = useState(maakWachtwoord)
   const [namen, setNamen] = useState('')
+  const [league, setLeague] = useState('')
   const [fout, setFout] = useState('')
   const [klaar, setKlaar] = useState(null)
 
@@ -88,6 +89,7 @@ function NieuweKlas({ herlaad }) {
     setFout('')
     try {
       const r = await rootRpc('root_klas_maken', { p_naam: naam, p_slug: slug || slugVan(naam), p_lw: lw, p_bw: bw })
+      if (league) await rootRpc('root_klas_league_zetten', { p_klas: r.id, p_league: league })
       if (namen.trim()) await rootRpc('root_leerlingen_toevoegen', { p_klas: r.id, p_namen: namen })
       setKlaar({ naam, slug: slug || slugVan(naam), lw, bw })
       setNaam('')
@@ -133,6 +135,15 @@ function NieuweKlas({ herlaad }) {
         </button>
       </div>
       <label className="veld">
+        <span>League (optioneel)</span>
+        <select value={league} onChange={(e) => setLeague(e.target.value)}>
+          <option value="">Geen league</option>
+          {leagues.map((g) => (
+            <option key={g.id} value={g.id}>{g.emoji ? `${g.emoji} ` : ''}{g.naam}</option>
+          ))}
+        </select>
+      </label>
+      <label className="veld">
         <span>Leerlingen (optioneel, één naam per regel)</span>
         <textarea value={namen} onChange={(e) => setNamen(e.target.value)} rows={4} />
       </label>
@@ -153,7 +164,7 @@ function NieuweKlas({ herlaad }) {
   )
 }
 
-function KlasDetail({ klas, herlaad, onWeg }) {
+function KlasDetail({ klas, leagues, herlaad, onWeg }) {
   const [detail, setDetail] = useState(null)
   const [qr, setQr] = useState('')
   const [naam, setNaam] = useState(klas.naam)
@@ -212,15 +223,28 @@ function KlasDetail({ klas, herlaad, onWeg }) {
         </div>
       )}
 
+      <label className="veld">
+        <span>League</span>
+        <select value={klas.league_id || ''} onChange={(e) => doe(() => rootRpc('root_klas_league_zetten', { p_klas: klas.id, p_league: e.target.value || null }))}>
+          <option value="">Geen league</option>
+          {leagues.map((g) => (
+            <option key={g.id} value={g.id}>{g.emoji ? `${g.emoji} ` : ''}{g.naam}</option>
+          ))}
+        </select>
+      </label>
+
       <details className="stack">
-        <summary>Uiterlijk van deze klas (naam, kleur, logo, emoji)</summary>
-        <KlasThemaForm
+        <summary>Uiterlijk en klaspagina van deze klas (alles aanpassen)</summary>
+        <KlasEditor
+          live={false}
           klas={klas}
-          opslaan={async (weergavenaam, thema) => {
+          opslaanThema={async (weergavenaam, thema) => {
             await rootRpc('root_klas_thema_opslaan', { p_id: klas.id, p_weergavenaam: weergavenaam, p_thema: thema })
             await herlaad()
           }}
-          upload={(bestand) => uploadAfbeelding(bestand, klas.id, 512)}
+          opslaanPagina={(blokken) => rootRpc('root_klas_pagina_opslaan', { p_id: klas.id, p_pagina: blokken })}
+          paginaLaad={() => rootRpc('root_klas_pagina_ophalen', { p_id: klas.id })}
+          upload={(bestand, maxPx) => uploadAfbeelding(bestand, klas.id, maxPx)}
           verwijder={verwijderAfbeelding}
         />
       </details>

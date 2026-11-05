@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useData } from './data.jsx'
 import { nl } from './strings.js'
+import { useThema } from './themaContext.jsx'
+import { toonVan } from './themaModel.js'
 import { dagDatum, dagLabel, dagVanVandaag, emoji, isHuidig, nuAmsterdam } from './util.js'
 import Modal from './Modal.jsx'
 import PrintBlad from './PrintBlad.jsx'
@@ -18,14 +20,17 @@ function useNu() {
 
 export default function Rooster() {
   const { data, laatst, fout } = useData()
+  const { thema } = useThema()
+  const toon = toonVan(thema)
   const nu = useNu()
   const eigen = data.leerling_id
-  const [gekozenWie, setWie] = useState(eigen || 'allen')
+  const startWie = () => (thema.standaard_weergave === 'klas' ? 'allen' : eigen || 'allen')
+  const [gekozenWie, setWie] = useState(startWie)
   const [dag, setDag] = useState(() => dagVanVandaag(data.instellingen, nuAmsterdam()) || 1)
   const [printen, setPrinten] = useState(false)
   const [infoPopup, setInfoPopup] = useState(false)
 
-  useEffect(() => setWie(eigen || 'allen'), [eigen])
+  useEffect(() => setWie(startWie()), [eigen]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // personal info pops up once per visit, only for the student themselves
   useEffect(() => {
@@ -86,23 +91,24 @@ export default function Rooster() {
       {zichtbaar.length === 0 ? (
         <p className="note">{nl.leegDag}</p>
       ) : (
-        <ol className="activiteiten">
+        <ol className="activiteiten" data-stijl={thema.kaartstijl || 'kaart'}>
           {zichtbaar.map((a) => {
-            const nuBezig = isHuidig(a, data.instellingen, nu)
-            const wiens = voorWie(a)
+            const nuBezig = toon.nu && isHuidig(a, data.instellingen, nu)
+            const wiens = toon.voor ? voorWie(a) : ''
             return (
               <li key={a.id} className={`activiteit c-${a.kleur}${nuBezig ? ' huidig' : ''}`}>
                 <div className="act-tijd">
                   <strong>{a.start}</strong>
-                  <span>t/m {a.eind}</span>
+                  {toon.einde && <span>t/m {a.eind}</span>}
                 </div>
                 <div className="act-body">
-                  {nuBezig && <span className="nu-badge">▶ {nl.nuBezig}</span>}
+                  {nuBezig && <span className="nu-badge">▶ {thema.nu_label || nl.nuBezig}</span>}
                   <strong>
-                    {a.emoji || emoji(a.titel)} {a.titel}
+                    {toon.emoji ? `${a.emoji || emoji(a.titel)} ` : ''}
+                    {a.titel}
                   </strong>
-                  {a.locatie && <span className="meta">📍 {a.locatie}</span>}
-                  {a.omschrijving && <span className="meta">{a.omschrijving}</span>}
+                  {toon.locatie && a.locatie && <span className="meta">📍 {a.locatie}</span>}
+                  {toon.omschrijving && a.omschrijving && <span className="meta">{a.omschrijving}</span>}
                   {wiens && <span className="voor">{wiens}</span>}
                 </div>
               </li>
