@@ -1,5 +1,8 @@
-# Klassenstrijd
+# Warning
+⚠️Deprecated⚠️ 
 
+This is an old unmaintained version!
+# Klassenstrijd
 A mobile-first PWA (Dutch UI) for a two-day school event where classes compete.
 
 - **Leerlingen:** log in with the class password, pick their name, see their own rooster (or the whole class), day messages,
