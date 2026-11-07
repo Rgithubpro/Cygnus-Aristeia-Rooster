@@ -21,6 +21,9 @@ import Meldingen from './Meldingen.jsx'
 import Beheer from './Beheer.jsx'
 import { FoutVanger } from './FoutGrens.jsx'
 import UpdateBalk from './UpdateBalk.jsx'
+import Instellingen from './Instellingen.jsx'
+import Welkom, { InstallTip, InstallUitleg } from './Welkom.jsx'
+import { useVoorkeur } from './voorkeur.js'
 
 // The Root panel (and the Supabase login library) is only downloaded on /root.
 const RootApp = lazy(() => import('./root/RootApp.jsx'))
@@ -41,6 +44,10 @@ function useOnline() {
 }
 
 export default function App() {
+  const [voork] = useVoorkeur()
+  useEffect(() => {
+    document.documentElement.dataset.animaties = voork.animaties === false ? 'uit' : 'aan'
+  }, [voork.animaties])
   return (
     <>
       <FoutVanger />
@@ -129,11 +136,11 @@ function ThemaDoos(props) {
   )
 }
 
-function Kader({ klas, thema, onUitloggen, offline, banner, children }) {
+function Kader({ klas, thema, onUitloggen, offline, banner, breed = false, children }) {
   return (
     <>
       <Decoratie thema={thema} />
-      <main className="page">
+      <main className={`page${breed ? ' breed' : ''}`}>
         <Kop klas={klas} thema={thema} onUitloggen={onUitloggen} />
         <EmojiStrook thema={thema} />
         {banner}
@@ -150,6 +157,8 @@ function Shell({ sessie, update, uitloggen, offline, klas }) {
   const [tab, setTab] = useState(() => opgeslagen.start_tab || tabsVan(opgeslagen)[0][0])
   const [kiesOpnieuw, setKiesOpnieuw] = useState(false)
   const [meldingen, setMeldingen] = useState(false)
+  const [instellingen, setInstellingen] = useState(false)
+  const [installUitleg, setInstallUitleg] = useState(false)
   const leerlingId = data?.leerling_id ?? sessie.leerlingId
 
   useAppIdentiteit(klas ? klas.weergavenaam || klas.naam : null, sessie.klas?.slug, opgeslagen)
@@ -183,12 +192,16 @@ function Shell({ sessie, update, uitloggen, offline, klas }) {
     )
   }
 
-  const tabs = [...tabsVan(thema, TAB_STANDAARD), ...(sessie.rol === 'beheer' ? [['beheer', nl.tabBeheer]] : [])]
+  const tabs = [...tabsVan(thema, TAB_STANDAARD, { stand: data.instellingen.stand_tab_forceer }), ...(sessie.rol === 'beheer' ? [['beheer', nl.tabBeheer]] : [])]
   const actief = tabs.some(([id]) => id === tab) ? tab : tabs[0][0]
 
   return (
-    <Kader klas={klas} thema={thema} onUitloggen={uitloggen} offline={offline} banner={<Banner banner={data.instellingen.banner} />}>
+    <Kader klas={klas} thema={thema} onUitloggen={uitloggen} offline={offline} breed={actief === 'beheer'} banner={<Banner banner={data.instellingen.banner} />}>
+      <InstallTip />
       <div className="rij">
+        <button className="btn ghost klein" onClick={() => setInstellingen(true)}>
+          ⚙️ Instellingen
+        </button>
         <button className="btn ghost klein" onClick={() => setMeldingen(true)}>
           🔔 {nl.meldingen}
         </button>
@@ -199,7 +212,7 @@ function Shell({ sessie, update, uitloggen, offline, klas }) {
         )}
       </div>
 
-      <nav className="segment scroll" role="tablist">
+      <nav className="segment" role="tablist">
         {tabs.map(([id, label]) => (
           <button key={id} role="tab" aria-selected={actief === id} onClick={() => setTab(id)}>
             {label}
@@ -207,11 +220,17 @@ function Shell({ sessie, update, uitloggen, offline, klas }) {
         ))}
       </nav>
 
-      {actief === 'rooster' && <Rooster />}
-      {actief === 'info' && <Info />}
-      {actief === 'stand' && <Stand sessie={sessie} />}
-      {actief === 'pagina' && <Pagina sessie={sessie} />}
-      {actief === 'beheer' && sessie.rol === 'beheer' && <Beheer sessie={sessie} />}
+      <div key={actief} className="tab-in stack">
+        {actief === 'rooster' && <Rooster />}
+        {actief === 'info' && <Info />}
+        {actief === 'stand' && <Stand sessie={sessie} />}
+        {actief === 'pagina' && <Pagina sessie={sessie} />}
+        {actief === 'beheer' && sessie.rol === 'beheer' && <Beheer sessie={sessie} />}
+      </div>
+
+      <Welkom sessie={sessie} leerlingId={leerlingId} />
+      {instellingen && <Instellingen sessie={sessie} leerlingId={leerlingId} uitloggen={uitloggen} onSluit={() => setInstellingen(false)} onMeldingen={() => { setInstellingen(false); setMeldingen(true) }} onInstall={() => { setInstellingen(false); setInstallUitleg(true) }} />}
+      {installUitleg && <InstallUitleg onSluit={() => setInstallUitleg(false)} />}
 
       {meldingen && <Meldingen sessie={sessie} leerlingId={leerlingId} onSluit={() => setMeldingen(false)} />}
     </Kader>

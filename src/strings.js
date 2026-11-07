@@ -1,6 +1,6 @@
 // All Dutch UI text for students and class admins lives here (the Root panel has its own text inline).
 export const nl = {
-  title: 'Klassenstrijd',
+  title: 'Aristeia',
   tagline: 'Jouw rooster voor de klassenstrijd.',
 
   setupTitel: 'Bijna klaar',
@@ -72,7 +72,8 @@ export const nl = {
   alleen: 'Alleen',
   met: 'Met',
   jouwInfo: 'Jouw persoonlijke info',
-  roosterPrintTitel: 'Klassenstrijd',
+  infoVan: 'Info van',
+  roosterPrintTitel: 'Aristeia',
   printTitel: 'Roosters printen',
   printUitleg: 'Per persoon één blaadje met alleen hun eigen activiteiten.',
   niemand: 'Niemand',
@@ -114,7 +115,7 @@ export const nl = {
   meldingenKiesNaam: 'Kies eerst wie je bent.',
   meldingenNietBeschikbaar: 'Meldingen zijn niet beschikbaar op deze server.',
   installeerTitel: 'Zet de app op je beginscherm',
-  installeerUitleg: 'Om meldingen te ontvangen moet je Klassenstrijd als app op je telefoon zetten.',
+  installeerUitleg: 'Om meldingen te ontvangen moet je Aristeia als app op je telefoon zetten.',
   installeerIos: 'iPhone / iPad: tik op het deel-icoon onderin je scherm, kies "Zet op beginscherm" en open de app daarna vanaf je beginscherm.',
   installeerAndroid: 'Android: tik op de drie puntjes rechtsboven, kies "App installeren" en open de app daarna vanaf je beginscherm.',
 
@@ -171,7 +172,7 @@ export const nl = {
   standTopVan: 'Top',
   jouwLeague: 'jouw league',
   andereLeagues: 'Andere leagues',
-  geenKlassenLeague: 'Nog geen klassen met punten.',
+  geenKlassenLeague: 'Nog geen uitslag.',
   // uiterlijk en afbeeldingen
   uiterlijk: 'Uiterlijk',
   emoji: 'Emoji',

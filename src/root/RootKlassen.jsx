@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { rootRpc, uploadAfbeelding, verwijderAfbeelding } from './client.js'
+import { rootRpc, uploadAfbeelding, uploadPng, verwijderAfbeelding } from './client.js'
 import KlasEditor from '../editor/KlasEditor.jsx'
 import { maakWachtwoord, slugVan } from '../util.js'
 
@@ -245,6 +245,7 @@ function KlasDetail({ klas, leagues, herlaad, onWeg }) {
           opslaanPagina={(blokken) => rootRpc('root_klas_pagina_opslaan', { p_id: klas.id, p_pagina: blokken })}
           paginaLaad={() => rootRpc('root_klas_pagina_ophalen', { p_id: klas.id })}
           upload={(bestand, maxPx) => uploadAfbeelding(bestand, klas.id, maxPx)}
+          uploadPng={(blob, naam) => uploadPng(blob, klas.id, naam)}
           verwijder={verwijderAfbeelding}
         />
       </details>

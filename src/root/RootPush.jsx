@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import BestandsKnop from '../BestandsKnop.jsx'
 import { pushVersturen } from '../api.js'
 import { afbeeldingUrl } from '../config.js'
 import { rootRpc, rootToken, uploadAfbeelding } from './client.js'
@@ -78,7 +79,7 @@ export default function RootPush({ overzicht }) {
       </label>
       <label className="veld">
         <span>Afbeelding (optioneel)</span>
-        <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setBestand(e.target.files?.[0] || null)} />
+        <BestandsKnop onBestand={setBestand} bestand={bestand} />
       </label>
       {fout && <p className="fout">{fout}</p>}
       {resultaat && <p className="ok">✓ {resultaat}</p>}

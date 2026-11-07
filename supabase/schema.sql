@@ -1,4 +1,4 @@
--- Klassenstrijd database (v2). Run once in the Supabase SQL Editor.
+-- Aristeia database (v2). Run once in the Supabase SQL Editor.
 -- Principle: no table can be read or written directly. RLS is on with no policies,
 -- table privileges are revoked, and the app only calls the functions below:
 --   * students/admins: functions that check a class session token

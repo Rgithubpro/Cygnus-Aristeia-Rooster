@@ -38,7 +38,7 @@ export default function Stand({ sessie }) {
   useEffect(() => {
     let weg = false
     const laad = () =>
-      rpc('stand_leagues', { p_token: sessie.token })
+      rpc('stand_dag_leagues', { p_token: sessie.token })
         .then((s) => !weg && (setStand(s), setFout(false)))
         .catch(() => !weg && setFout(true))
     laad()
@@ -53,15 +53,10 @@ export default function Stand({ sessie }) {
   if (stand.tot_dag === 0) return <p className="note">{nl.standLeeg}</p>
 
   const eigenEerst = [...stand.leagues].sort((a, b) => Number(b.eigen) - Number(a.eigen))
-  const top = stand.modus === 'top'
+  const top = false
 
   return (
     <div className="stack">
-      {top && (
-        <p className="note">
-          {nl.standTopUitleg} ({nl.standTopVan} {stand.aantal_top})
-        </p>
-      )}
       {eigenEerst.map((lg, i) => {
         const kop = (
           <>

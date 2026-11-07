@@ -1,33 +1,29 @@
 import { useEffect, useState } from 'react'
 import { rootRpc } from './client.js'
 
-// Standings control: what students see (day 1 = top N per league, day 2 = everyone), the leagues, and quick point entry.
+// Standings: what students see, leagues, and a simple list of places per class (shared places allowed, points optional).
 export default function RootLeagues({ overzicht, herlaad }) {
   const i = overzicht.instellingen
   const leagues = overzicht.leagues || []
-  const [top, setTop] = useState(i.stand_top_aantal ?? 3)
-  const [punten, setPunten] = useState(i.stand_toon_punten_dag1 ?? true)
-  const zichtbaar = async (dag) => {
-    await rootRpc('root_stand_opslaan', { p_dag: dag, p_top: Number(top) || 3, p_punten: punten })
+  const zet = async (dag, punten, forceer) => {
+    await rootRpc('root_stand_instellingen', { p_dag: dag, p_punten: punten, p_forceer: forceer })
     herlaad()
   }
   return (
     <>
       <div className="card stack">
         <h2>Zichtbaar voor leerlingen</h2>
-        <p className="note">De database geeft alleen vrij wat hier is gekozen. Dag 1: de beste klassen per league. Dag 2: alle klassen met punten.</p>
+        <p className="note">De database geeft alleen de uitslag van de gekozen dag vrij. Zet eerst de uitslag hieronder klaar.</p>
         <div className="segment">
-          {[[0, 'Niets'], [1, 'Dag 1 (top)'], [2, 'Dag 2 (alles)']].map(([d, l]) => (
-            <button key={d} aria-selected={i.uitslag_tot_dag === d} onClick={() => zichtbaar(d)}>{l}</button>
+          {[[0, 'Niets'], [1, 'Dag 1'], [2, 'Dag 2']].map(([d, l]) => (
+            <button key={d} aria-selected={i.uitslag_tot_dag === d} onClick={() => zet(d, i.stand_toon_punten_dag1, i.stand_tab_forceer)}>{l}</button>
           ))}
         </div>
-        <div className="rij">
-          <label className="veld"><span>Aantal klassen in de top (dag 1)</span><input className="getal" type="number" min="1" max="10" value={top} onChange={(e) => setTop(e.target.value)} onBlur={() => zichtbaar(i.uitslag_tot_dag)} /></label>
-          <label className="vink"><input type="checkbox" checked={punten} onChange={(e) => { setPunten(e.target.checked); rootRpc('root_stand_opslaan', { p_dag: i.uitslag_tot_dag, p_top: Number(top) || 3, p_punten: e.target.checked }).then(herlaad) }} /><span>Punten tonen op dag 1</span></label>
-        </div>
+        <label className="vink"><input type="checkbox" checked={!!i.stand_toon_punten_dag1} onChange={(e) => zet(i.uitslag_tot_dag, e.target.checked, i.stand_tab_forceer)} /><span>Punten ook tonen op dag 1 (op dag 2 altijd)</span></label>
+        <label className="vink"><input type="checkbox" checked={!!i.stand_tab_forceer} onChange={(e) => zet(i.uitslag_tot_dag, i.stand_toon_punten_dag1, e.target.checked)} /><span>Tabblad "Stand" altijd tonen, ook als een klas het uit heeft gezet</span></label>
       </div>
       <Leagues leagues={leagues} herlaad={herlaad} />
-      <SnelleInvoer overzicht={overzicht} />
+      <UitslagInvoer overzicht={overzicht} />
     </>
   )
 }
@@ -38,10 +34,8 @@ function Leagues({ leagues, herlaad }) {
   return (
     <div className="card stack">
       <h2>Leagues</h2>
-      <p className="note">Klassen strijden binnen hun eigen league (bijvoorbeeld twee leerjaren). Deel klassen in via Klassen, Details.</p>
-      {leagues.map((g) => (
-        <LeagueRij key={g.id} g={g} herlaad={herlaad} />
-      ))}
+      <p className="note">Klassen strijden binnen hun eigen league. Deel klassen in via Klassen, Details.</p>
+      {leagues.map((g) => <LeagueRij key={g.id} g={g} herlaad={herlaad} />)}
       <div className="rij">
         <input className="emoji-in" value={emoji} onChange={(e) => setEmoji(e.target.value)} maxLength={12} placeholder="🏆" aria-label="Emoji" />
         <input value={naam} onChange={(e) => setNaam(e.target.value)} maxLength={40} placeholder="Naam van de league" aria-label="Naam" />
@@ -64,29 +58,39 @@ function LeagueRij({ g, herlaad }) {
   )
 }
 
-// One number per class per day (stored as the game "Totaal"). The per-game entry below stays available.
-function SnelleInvoer({ overzicht }) {
+// A place per class (1, 2, 2, 4 ... shared places are fine) and optionally the total points.
+function UitslagInvoer({ overzicht }) {
   const [dag, setDag] = useState(1)
   const [league, setLeague] = useState('')
   const [rijen, setRijen] = useState([])
   const [w, setW] = useState({})
   const [ok, setOk] = useState(false)
-  useEffect(() => { rootRpc('root_punten_lijst').then(setRijen) }, [])
+  const [fout, setFout] = useState('')
+  const laad = () => rootRpc('root_stand_dag_lijst').then(setRijen)
+  useEffect(() => { laad() }, [])
   useEffect(() => {
-    setW(Object.fromEntries(rijen.filter((r) => r.dag === dag && r.onderdeel === 'Totaal').map((r) => [r.klas_id, String(r.punten)])))
+    setW(Object.fromEntries(rijen.filter((r) => r.dag === dag).map((r) => [r.klas_id, { plaats: String(r.plaats), punten: r.punten ?? '' }])))
     setOk(false)
   }, [dag, rijen])
   const klassen = overzicht.klassen.filter((k) => (league === '' ? true : league === 'geen' ? !k.league_id : k.league_id === league))
+  const zet = (id, veld, v) => { setOk(false); setW({ ...w, [id]: { plaats: '', punten: '', ...w[id], [veld]: v } }) }
+
   async function bewaar() {
-    const payload = Object.fromEntries(klassen.map((k) => [k.id, w[k.id] ?? '']))
-    await rootRpc('root_punten_opslaan', { p_dag: dag, p_onderdeel: 'Totaal', p_waarden: payload })
-    setRijen(await rootRpc('root_punten_lijst'))
-    setOk(true)
+    setFout('')
+    try {
+      const p_rijen = klassen.map((k) => ({ klas_id: k.id, plaats: w[k.id]?.plaats ? Number(w[k.id].plaats) : null, punten: w[k.id]?.punten === '' || w[k.id]?.punten == null ? null : Number(w[k.id].punten) }))
+      await rootRpc('root_stand_dag_opslaan', { p_dag: dag, p_rijen })
+      await laad()
+      setOk(true)
+    } catch {
+      setFout('Opslaan mislukt. Gebruik hele getallen (plaats 1 of hoger).')
+    }
   }
+
   return (
     <div className="card stack">
-      <h2>Snelle puntentelling</h2>
-      <p className="note">Eén getal per klas voor die dag. De stand telt dag 1 en dag 2 bij elkaar op.</p>
+      <h2>Uitslag invoeren</h2>
+      <p className="note">Vul per klas de plaats in (twee klassen mogen dezelfde plaats delen). Punten zijn optioneel. Leeg laten = de klas staat niet in de lijst.</p>
       <div className="rij">
         <label className="veld"><span>Dag</span><select value={dag} onChange={(e) => setDag(Number(e.target.value))}><option value={1}>Dag 1</option><option value={2}>Dag 2</option></select></label>
         <label className="veld grow"><span>League</span>
@@ -98,12 +102,23 @@ function SnelleInvoer({ overzicht }) {
         </label>
       </div>
       <ul className="vinklijst hoog">
+        <li className="rij tussen note"><span>Klas</span><span className="rij"><span className="getal">Plaats</span><span className="getal">Punten</span></span></li>
         {klassen.map((k) => (
-          <li key={k.id} className="rij tussen"><span>{k.weergavenaam || k.naam}</span><input className="getal" type="number" step="1" value={w[k.id] ?? ''} onChange={(e) => { setOk(false); setW({ ...w, [k.id]: e.target.value }) }} aria-label={`Punten ${k.naam}`} /></li>
+          <li key={k.id} className="rij tussen">
+            <span>{k.naam}</span>
+            <span className="rij">
+              <input className="getal" type="number" min="1" step="1" value={w[k.id]?.plaats ?? ''} onChange={(e) => zet(k.id, 'plaats', e.target.value)} aria-label={`Plaats ${k.naam}`} />
+              <input className="getal" type="number" step="1" value={w[k.id]?.punten ?? ''} onChange={(e) => zet(k.id, 'punten', e.target.value)} aria-label={`Punten ${k.naam}`} />
+            </span>
+          </li>
         ))}
       </ul>
+      {fout && <p className="fout">{fout}</p>}
       {ok && <p className="ok">✓ Opgeslagen</p>}
-      <button className="btn" onClick={bewaar}>Opslaan</button>
+      <div className="rij">
+        <button className="btn" onClick={bewaar}>Opslaan</button>
+        <button className="btn ghost" onClick={async () => { if (window.confirm('De plaatsen en totalen van deze dag worden overschreven met de uitkomst van de punten per onderdeel (zie hieronder). Doorgaan?')) { await rootRpc('root_stand_berekenen', { p_dag: dag }); await laad() } }}>Berekenen uit onderdeel-punten</button>
+      </div>
     </div>
   )
 }

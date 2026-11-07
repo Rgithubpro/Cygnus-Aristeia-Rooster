@@ -1,5 +1,6 @@
 import { Component, useEffect, useState } from 'react'
 import { nl } from './strings.js'
+import { logFout } from './logboek.js'
 
 // If a screen crashes, show a friendly message with a reload button instead of a white page.
 export class FoutGrens extends Component {
@@ -9,6 +10,7 @@ export class FoutGrens extends Component {
   }
   componentDidCatch(error) {
     console.error('app fout', error)
+    logFout(`scherm: ${error?.message}`)
   }
   render() {
     if (!this.state.kapot) return this.props.children
@@ -32,6 +34,7 @@ export function FoutVanger() {
   useEffect(() => {
     const op = (e) => {
       if (e.reason?.message === 'sessie_ongeldig') return // handled by the login screen
+      logFout(e.reason?.message || 'onbekende fout')
       setBericht(nl.foutMelding)
       clearTimeout(op.t)
       op.t = setTimeout(() => setBericht(''), 6000)

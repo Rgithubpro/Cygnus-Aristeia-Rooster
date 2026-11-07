@@ -171,11 +171,11 @@ export function afbeeldingSrc(thema, sleutel) {
 
 // ---------- tabs ----------
 export const TAB_STANDAARD = { rooster: 'Rooster', info: 'Info', stand: 'Stand', pagina: 'Onze klas' }
-export function tabsVan(thema, labels = TAB_STANDAARD) {
+export function tabsVan(thema, labels = TAB_STANDAARD, forceer = {}) {
   const t = thema || {}
   const volgorde = [...(t.tab_volgorde || []), 'rooster', 'info', 'stand', 'pagina'].filter((id, i, a) => a.indexOf(id) === i)
   return volgorde
-    .filter((id) => id === 'rooster' || (t.tabs?.[id]?.aan ?? id !== 'pagina'))
+    .filter((id) => id === 'rooster' || forceer[id] || (t.tabs?.[id]?.aan ?? id !== 'pagina'))
     .map((id) => [id, t.tabs?.[id]?.naam || labels[id]])
 }
 

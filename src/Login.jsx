@@ -2,12 +2,11 @@ import { useEffect, useState } from 'react'
 import { rpc } from './api.js'
 import { nl } from './strings.js'
 import Banner from './Banner.jsx'
-import Decoratie, { EmojiStrook } from './Decoratie.jsx'
 import Kop from './Kop.jsx'
-import { useThemaToepassen } from './themaContext.jsx'
-import { useAppIdentiteit } from './pwaIdentiteit.js'
+import Welkom from './Welkom.jsx'
 
-// /k/<slug> (from the class QR code or link) pre-selects the class, and the screen already looks like that class.
+// /k/<slug> (from the class QR code or link) pre-selects the class. The login screen always uses the default look:
+// the class look only appears after logging in.
 const slugUitLink = () => (location.pathname.match(/^\/k\/([a-z0-9-]+)/i)?.[1] || '').toLowerCase()
 
 export default function LoginScherm({ onKlaar, offline }) {
@@ -20,11 +19,6 @@ export default function LoginScherm({ onKlaar, offline }) {
   useEffect(() => {
     rpc('start_info').then(setInfo).catch(() => setFout(nl.laadFout))
   }, [])
-
-  const klas = info?.klassen.find((k) => k.slug === slug) || null
-  const thema = klas?.thema || {}
-  useThemaToepassen(thema)
-  useAppIdentiteit(klas ? klas.weergavenaam || klas.naam : null, klas?.slug, thema)
 
   async function verstuur(e) {
     e.preventDefault()
@@ -42,40 +36,29 @@ export default function LoginScherm({ onKlaar, offline }) {
   }
 
   return (
-    <>
-      <Decoratie thema={thema} />
-      <main className="page">
-        <Kop klas={klas} thema={thema} />
-        <EmojiStrook thema={thema} />
-        {offline}
-        <Banner banner={info?.banner} />
-        <form className="card stack" onSubmit={verstuur}>
-          <h2>{nl.loginTitel}</h2>
-          <label className="veld">
-            <span>{nl.klas}</span>
-            <select value={slug} onChange={(e) => setSlug(e.target.value)} required>
-              <option value="">{nl.kiesKlas}</option>
-              {(info?.klassen || []).map((k) => (
-                <option key={k.slug} value={k.slug}>
-                  {k.naam}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="veld">
-            <span>{nl.wachtwoord}</span>
-            <input type="password" value={wachtwoord} onChange={(e) => setWachtwoord(e.target.value)} autoComplete="current-password" required />
-          </label>
-          {fout && (
-            <p className="fout" role="alert">
-              {fout}
-            </p>
-          )}
-          <button className="btn" disabled={bezig || !slug || !wachtwoord}>
-            {nl.inloggen}
-          </button>
-        </form>
-      </main>
-    </>
+    <main className="page">
+      <Kop />
+      {offline}
+      <Banner banner={info?.banner} />
+      <form className="card stack" onSubmit={verstuur}>
+        <h2>{nl.loginTitel}</h2>
+        <label className="veld">
+          <span>{nl.klas}</span>
+          <select value={slug} onChange={(e) => setSlug(e.target.value)} required>
+            <option value="">{nl.kiesKlas}</option>
+            {(info?.klassen || []).map((k) => (
+              <option key={k.slug} value={k.slug}>{k.naam}</option>
+            ))}
+          </select>
+        </label>
+        <label className="veld">
+          <span>{nl.wachtwoord}</span>
+          <input type="password" value={wachtwoord} onChange={(e) => setWachtwoord(e.target.value)} autoComplete="current-password" required />
+        </label>
+        {fout && <p className="fout" role="alert">{fout}</p>}
+        <button className="btn" disabled={bezig || !slug || !wachtwoord}>{nl.inloggen}</button>
+      </form>
+      <Welkom />
+    </main>
   )
 }

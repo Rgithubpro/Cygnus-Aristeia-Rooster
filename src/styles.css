@@ -293,3 +293,74 @@ body::before { content: ''; position: fixed; inset: 0; background-image: var(--p
 .opslaanbalk { position: sticky; bottom: 0; z-index: 5; display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; flex-wrap: wrap; background: var(--surface); border: 1px solid var(--accent); border-radius: var(--r-m, 0.7rem); padding: 0.6rem 0.8rem; box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.15); }
 .tab-rij { display: grid; gap: 0.4rem; padding-bottom: 0.6rem; border-bottom: 1px solid var(--line); }
 .emoji-chip { font: inherit; cursor: pointer; padding: 0.3rem 0.6rem; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 999px; }
+
+/* ---------- v6: bars, buttons, previews, settings ---------- */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.page.breed { max-width: 62rem; }
+
+/* tab bars never scroll: they wrap and fill the whole width, with matching corner radii */
+.segment, .segment.scroll { flex-wrap: wrap; overflow: visible; }
+.segment button, .segment.scroll button { flex: 1 1 auto; padding: 0 0.9rem; white-space: nowrap; border-radius: max(0rem, calc(var(--r-m, 0.7rem) - 0.25rem)); }
+
+.bestand { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; }
+.bestand-knop { cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+.sr-only:focus-visible + .bestand-knop { outline: 3px solid var(--accent); outline-offset: 2px; }
+.bestand-naam { overflow-wrap: anywhere; }
+
+.tip { font-size: 0.9rem; color: var(--ink2); }
+.hulp { background: var(--surface); border: 1px solid var(--accent); border-radius: var(--r-m, 0.7rem); padding: 0.6rem 0.8rem; }
+.hulp a, .modal a:not(.btn) { color: var(--accent); font-weight: 600; }
+a.btn { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+.info-rij { display: flex; justify-content: space-between; gap: 1rem; padding: 0.35rem 0; border-bottom: 1px solid var(--line); }
+.info-rij span:last-child { text-align: right; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+
+.pagina-split { display: grid; gap: calc(1rem * var(--d, 1)); }
+@media (min-width: 52rem) { .pagina-split { grid-template-columns: 1fr 1fr; align-items: start; } .voorbeeld { position: sticky; top: 1rem; } }
+
+.icoon-rij { display: flex; flex-wrap: wrap; gap: 1rem; }
+.icoon-kader { display: grid; gap: 0.3rem; justify-items: center; }
+.icoon-doos { position: relative; width: 5.5rem; height: 5.5rem; overflow: hidden; background: var(--bg); border: 1px solid var(--line); }
+.icoon-doos img { width: 100%; height: 100%; display: block; }
+.icoon-doos.ios { border-radius: 22.5%; } .icoon-doos.rond { border-radius: 50%; } .icoon-doos.afgerond { border-radius: 30%; }
+.icoon-doos.tab { width: 2rem; height: 2rem; border-radius: 0.3rem; }
+.icoon-doos .veilig { position: absolute; inset: 17%; border: 2px dashed rgba(255, 0, 90, 0.8); border-radius: 50%; pointer-events: none; }
+.icoon-nu { width: 2.4rem; height: 2.4rem; border-radius: 22%; vertical-align: middle; }
+input[type='range'] { padding: 0; min-height: 2rem; accent-color: var(--accent); }
+
+/* ---------- animations ---------- */
+@keyframes in-op { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes pop { 0% { transform: scale(0.94); } 60% { transform: scale(1.04); } 100% { transform: scale(1); } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modal-in { from { opacity: 0; transform: translateY(16px) scale(0.97); } to { opacity: 1; transform: none; } }
+@keyframes glow { 50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--kc) 35%, transparent); } }
+@keyframes puls { 50% { opacity: 0.65; } }
+
+.tab-in { animation: in-op 0.3s ease both; }
+.card, .activiteit, .keuze, .stand li, .palet, .banner, .dagbericht, .hulp, .blok { animation: in-op 0.35s ease both; }
+.activiteiten > li:nth-child(2), .stand > li:nth-child(2) { animation-delay: 0.05s; }
+.activiteiten > li:nth-child(3), .stand > li:nth-child(3) { animation-delay: 0.1s; }
+.activiteiten > li:nth-child(4), .stand > li:nth-child(4) { animation-delay: 0.15s; }
+.activiteiten > li:nth-child(5), .stand > li:nth-child(5) { animation-delay: 0.2s; }
+.activiteiten > li:nth-child(n + 6), .stand > li:nth-child(n + 6) { animation-delay: 0.25s; }
+.modal { animation: fade 0.2s ease both; }
+.modal-kaart { animation: modal-in 0.28s ease both; }
+.fout-vanger, .update-balk { animation: in-op 0.3s ease both; }
+.activiteit.huidig { animation: in-op 0.35s ease both, glow 2.6s ease-in-out infinite; }
+.nu-badge { animation: puls 1.8s ease-in-out infinite; }
+details[open] > :not(summary) { animation: in-op 0.3s ease both; }
+
+.btn, .segment button, .palet, .kleur, .emoji-rooster button, .keuze, .emoji-chip, .tab-rij, input, select, textarea {
+  transition: transform 0.15s ease, background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, filter 0.2s ease;
+}
+.btn:hover { filter: brightness(1.07); transform: translateY(-1px); }
+.btn:active, .segment button:active { transform: scale(0.96); }
+.segment button[aria-selected='true'], .segment button[aria-checked='true'] { animation: pop 0.32s ease; }
+.palet:hover, .kleur:hover, .keuze:hover, .emoji-rooster button:hover { transform: translateY(-2px); }
+input:focus, select:focus, textarea:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent); outline: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; animation-delay: 0s !important; transition-duration: 0.001ms !important; }
+}
+html[data-animaties='uit'] *, html[data-animaties='uit'] *::before, html[data-animaties='uit'] *::after {
+  animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; animation-delay: 0s !important; transition-duration: 0.001ms !important;
+}

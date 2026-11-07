@@ -42,3 +42,12 @@ export async function verwijderKlasAfbeelding(sessie, pad) {
   const { c } = await toegang(sessie)
   await c.storage.from('afbeeldingen').remove([pad])
 }
+
+// Uploads a ready-made PNG (app icons) without converting it.
+export async function uploadKlasPng(sessie, blob, naam) {
+  const { c, klasId } = await toegang(sessie)
+  const pad = `${klasId}/${naam}`
+  const { error } = await c.storage.from('afbeeldingen').upload(pad, blob, { contentType: 'image/png', upsert: false })
+  if (error) throw new Error(error.message)
+  return pad
+}

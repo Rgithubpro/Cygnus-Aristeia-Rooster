@@ -50,6 +50,8 @@ export default function Rooster() {
   const dagbericht =
     data.dagberichten.find((b) => b.dag === dag && !b.globaal) || data.dagberichten.find((b) => b.dag === dag && b.globaal)
 
+  const persoonInfo = wie === 'allen' ? '' : wie === eigen ? data.mijn_info : data.leerlingen.find((l) => l.id === wie)?.rol_info
+
   function voorWie(a) {
     if (a.globaal) return `👥 ${nl.iedereen}`
     if (wie === 'allen') return a.leerlingen.length ? `👥 ${a.leerlingen.map((id) => naam[id]).filter(Boolean).join(', ')}` : ''
@@ -117,10 +119,10 @@ export default function Rooster() {
         </ol>
       )}
 
-      {wie === eigen && data.mijn_info && (
+      {persoonInfo && (
         <div className="card info-kaart">
-          <strong>🎭 {nl.jouwInfo}</strong>
-          <p>{data.mijn_info}</p>
+          <strong>🎭 {wie === eigen ? nl.jouwInfo : `${nl.infoVan} ${naam[wie]}`}</strong>
+          <p>{persoonInfo}</p>
         </div>
       )}
 

@@ -52,3 +52,11 @@ export async function verwijderAfbeelding(pad) {
   const c = await rootClient()
   await c.storage.from('afbeeldingen').remove([pad])
 }
+
+export async function uploadPng(blob, map, naam) {
+  const pad = `${map}/${naam}`
+  const c = await rootClient()
+  const { error } = await c.storage.from('afbeeldingen').upload(pad, blob, { contentType: 'image/png', upsert: false })
+  if (error) throw error
+  return pad
+}

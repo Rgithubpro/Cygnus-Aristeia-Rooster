@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { afbeeldingUrl } from '../config.js'
+import BestandsKnop from '../BestandsKnop.jsx'
 import EmojiKiezer from '../EmojiKiezer.jsx'
 import { FONTS, PALETTEN, PATRONEN, PRESET_KLEUREN, TAB_STANDAARD, contrast, tabsVan, toonVan } from '../themaModel.js'
 import EmojiLijst from './EmojiLijst.jsx'
@@ -12,7 +13,7 @@ function BeeldKeuze({ label, uitleg, pad, bestand, onBestand, onWeg }) {
   return (
     <div className="veld">
       <span>{label}</span>
-      <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => onBestand(e.target.files?.[0] || null)} />
+      <BestandsKnop onBestand={onBestand} bestand={bestand} />
       {uitleg && <small className="note">{uitleg}</small>}
       {src && (
         <div className="rij">
@@ -33,9 +34,9 @@ export function Identiteit({ t, zet, naam, setNaam, bestanden, zetBestand }) {
     <>
       <Sectie titel="Naam en slogan">
         <label className="veld">
-          <span>Weergavenaam van je klas</span>
+          <span>Bijnaam van je klas</span>
           <input value={naam} onChange={(e) => setNaam(e.target.value)} maxLength={40} placeholder="Bijvoorbeeld: 4G1 De Draken" />
-          <small className="note">Wordt getoond in de app en in de stand. Leeg = de gewone klasnaam.</small>
+          <small className="note">Alleen je eigen klas ziet deze naam. Iedereen anders (inlogscherm, stand) ziet de gewone klasnaam.</small>
         </label>
         <label className="veld">
           <span>Slogan</span>
@@ -44,7 +45,7 @@ export function Identiteit({ t, zet, naam, setNaam, bestanden, zetBestand }) {
         <EmojiKiezer label="Klas-emoji (als je geen logo hebt)" waarde={t.emoji || ''} onKies={(emoji) => zet({ emoji })} auto />
       </Sectie>
 
-      <Sectie titel="Afbeeldingen" uitleg="Alles wordt automatisch verkleind. Je logo vervangt het zwaan-logo overal: in de kop, op het inlogscherm, in meldingen en als app-icoon.">
+      <Sectie titel="Afbeeldingen" uitleg="Alles wordt automatisch verkleind. Je logo vervangt het zwaan-logo in de app en in meldingen. Het app-icoon voor het beginscherm stel je in bij de tab App-icoon.">
         <BeeldKeuze label="Logo (vierkant werkt het best)" pad={t.logo} bestand={bestanden.logo} onBestand={(f) => zetBestand('logo', f)} onWeg={() => { zetBestand('logo', null); zet({ logo: '' }) }} />
         <BeeldKeuze label="Banner (brede afbeelding achter de kop)" uitleg="Alleen zichtbaar bij kop-stijl 'Banner' (tab Stijl)." pad={t.banner} bestand={bestanden.banner} onBestand={(f) => zetBestand('banner', f)} onWeg={() => { zetBestand('banner', null); zet({ banner: '' }) }} />
         <BeeldKeuze label="Mascotte (zweeft in een hoek van het scherm)" pad={t.mascotte} bestand={bestanden.mascotte} onBestand={(f) => zetBestand('mascotte', f)} onWeg={() => { zetBestand('mascotte', null); zet({ mascotte: '' }) }} />
@@ -54,7 +55,7 @@ export function Identiteit({ t, zet, naam, setNaam, bestanden, zetBestand }) {
       <Sectie titel="Kop">
         <Schakel label="Logo tonen" aan={toon.logo} onWissel={(v) => zetToon('logo', v)} />
         <Schakel label="Slogan tonen" aan={toon.slogan} onWissel={(v) => zetToon('slogan', v)} />
-        <Schakel label="Naam van de app (Klassenstrijd) tonen" aan={toon.appnaam} onWissel={(v) => zetToon('appnaam', v)} />
+        <Schakel label="Naam van de app (Aristeia) tonen" aan={toon.appnaam} onWissel={(v) => zetToon('appnaam', v)} />
       </Sectie>
     </>
   )

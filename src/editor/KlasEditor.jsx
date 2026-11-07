@@ -1,10 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
+import { afbeeldingUrl } from '../config.js'
 import { useThema } from '../themaContext.jsx'
 import { Decoratie, Identiteit, Kleuren, Stijl, Tabs, Weergave, leesbaarheid } from './Secties.jsx'
 import PaginaEditor from './PaginaEditor.jsx'
+import AppIcoon from './AppIcoon.jsx'
+import { bouwIcoonSet, icoonPaden, laadBitmap } from './icoon.js'
 
 const SECTIES = [
   ['identiteit', 'Identiteit'],
+  ['icoon', 'App-icoon'],
   ['kleuren', 'Kleuren'],
   ['stijl', 'Stijl'],
   ['weergave', 'Weergave'],
@@ -38,13 +42,18 @@ const FOUTEN = {
 }
 
 // The whole class customization in one place. In the class admin's own app the whole page previews edits live (`live`).
-export default function KlasEditor({ klas, opslaanThema, opslaanPagina, paginaLaad, upload, verwijder, live = true }) {
+export default function KlasEditor({ klas, opslaanThema, opslaanPagina, paginaLaad, upload, uploadPng, verwijder, live = true }) {
   const { zetConcept } = useThema()
   const basis = useMemo(() => sleutel(klas.weergavenaam, klas.thema), [klas.weergavenaam, klas.thema])
   const [sectie, setSectie] = useState('identiteit')
   const [naam, setNaam] = useState(klas.weergavenaam || '')
   const [t, setT] = useState(() => ({ ...(klas.thema || {}) }))
   const [bestanden, setBestanden] = useState({})
+  const [icoon, setIcoon] = useState({ actief: false, bron: 'logo', bestand: null, marge: 12, achtergrond: '#ffffff' })
+  const zetIcoon = (p) => {
+    setOk(false)
+    setIcoon((v) => ({ ...v, ...p, actief: true }))
+  }
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState('')
   const [ok, setOk] = useState(false)
@@ -66,7 +75,7 @@ export default function KlasEditor({ klas, opslaanThema, opslaanPagina, paginaLa
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [t, naam, blobs, live])
 
-  const gewijzigd = sleutel(naam, t) !== basis || BEELDEN.some((k) => bestanden[k])
+  const gewijzigd = sleutel(naam, t) !== basis || BEELDEN.some((k) => bestanden[k]) || icoon.actief
   const l = leesbaarheid(t)
 
   async function bewaar() {
@@ -76,7 +85,7 @@ export default function KlasEditor({ klas, opslaanThema, opslaanPagina, paginaLa
     setOk(false)
     const nieuw = []
     try {
-      const paden = { logo: t.logo || '', banner: t.banner || '', mascotte: t.mascotte || '' }
+      const paden = { logo: t.logo || '', banner: t.banner || '', mascotte: t.mascotte || '', icoon: t.icoon || '' }
       for (const k of BEELDEN) {
         if (bestanden[k]) {
           const pad = await upload(bestanden[k], k === 'banner' ? 1600 : 512)
@@ -84,18 +93,31 @@ export default function KlasEditor({ klas, opslaanThema, opslaanPagina, paginaLa
           paden[k] = pad
         }
       }
+      if (icoon.actief) {
+        const bron = icoon.bron === 'eigen' ? icoon.bestand : bestanden.logo || (t.logo ? afbeeldingUrl(t.logo) : null)
+        if (!bron) throw new Error('geen_icoonbron')
+        const set = await bouwIcoonSet(await laadBitmap(bron), icoon)
+        const id = crypto.randomUUID().replace(/-/g, '').slice(0, 16)
+        for (const [sleutel, naam] of [['512', `${id}-512.png`], ['192', `${id}-192.png`], ['180', `${id}-180.png`], ['m512', `${id}-m512.png`]]) {
+          const pad = await uploadPng(set[sleutel], naam)
+          nieuw.push(pad)
+          if (sleutel === '512') paden.icoon = pad
+        }
+      }
       const thema = { ...t, ...paden }
       await opslaanThema(naam, thema)
+      if (klas.thema?.icoon && klas.thema.icoon !== paden.icoon) icoonPaden(klas.thema.icoon).forEach((p) => verwijder(p).catch(() => {}))
       for (const k of BEELDEN) {
         const oud = klas.thema?.[k]
         if (oud && oud !== paden[k]) verwijder(oud).catch(() => {})
       }
       setT(thema)
       setBestanden({})
+      setIcoon((v) => ({ ...v, actief: false, bestand: null }))
       setOk(true)
     } catch (e) {
       nieuw.forEach((p) => verwijder(p).catch(() => {}))
-      setFout(e.message === 'anoniem_uit' ? 'Uploaden staat nog niet aan. Vraag de organisatie om anonieme logins aan te zetten.' : FOUTEN[e.code] || 'Opslaan is niet gelukt. Probeer het opnieuw.')
+      setFout(e.message === 'geen_icoonbron' ? 'Kies eerst een logo of een eigen afbeelding voor het app-icoon.' : e.message === 'anoniem_uit' ? 'Uploaden staat nog niet aan. Vraag de organisatie om anonieme logins aan te zetten.' : FOUTEN[e.code] || 'Opslaan is niet gelukt. Probeer het opnieuw.')
     }
     setBezig(false)
   }
@@ -104,6 +126,7 @@ export default function KlasEditor({ klas, opslaanThema, opslaanPagina, paginaLa
     setNaam(klas.weergavenaam || '')
     setT({ ...(klas.thema || {}) })
     setBestanden({})
+    setIcoon({ actief: false, bron: 'logo', bestand: null, marge: 12, achtergrond: '#ffffff' })
     setFout('')
   }
   const reset = () => {
@@ -115,7 +138,7 @@ export default function KlasEditor({ klas, opslaanThema, opslaanPagina, paginaLa
 
   return (
     <div className="stack editor">
-      <div className="segment scroll" role="tablist">
+      <div className="segment" role="tablist">
         {SECTIES.map(([id, label]) => (
           <button key={id} role="tab" aria-selected={sectie === id} onClick={() => setSectie(id)}>
             {label}
@@ -125,6 +148,7 @@ export default function KlasEditor({ klas, opslaanThema, opslaanPagina, paginaLa
       {live && <p className="note">Wat je hier verandert, zie je meteen in de hele app. Het wordt pas bewaard (en door je klas gezien) als je op Opslaan drukt.</p>}
 
       {sectie === 'identiteit' && <Identiteit t={t} zet={zet} naam={naam} setNaam={setNaam} bestanden={bestanden} zetBestand={zetBestand} />}
+      {sectie === 'icoon' && <AppIcoon t={t} bestandLogo={bestanden.logo} icoon={icoon} zetIcoon={zetIcoon} />}
       {sectie === 'kleuren' && <Kleuren t={t} zet={zet} />}
       {sectie === 'stijl' && <Stijl t={t} zet={zet} />}
       {sectie === 'weergave' && <Weergave t={t} zet={zet} />}

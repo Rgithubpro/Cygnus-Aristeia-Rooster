@@ -1,8 +1,19 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { rpc } from './api.js'
+import { afbeeldingUrl } from './config.js'
 
 const Ctx = createContext(null)
 export const useData = () => useContext(Ctx)
+
+const voorgeladen = new Set()
+// Fetching a picture once lets the service worker store it, so it also shows offline.
+export function voorlaad(paden) {
+  paden.filter(Boolean).forEach((p) => {
+    if (voorgeladen.has(p)) return
+    voorgeladen.add(p)
+    fetch(afbeeldingUrl(p), { mode: 'cors', credentials: 'omit' }).catch(() => voorgeladen.delete(p))
+  })
+}
 
 const CACHE = 'ks.alles'
 const vingerafdruk = (token) => token.slice(-10)
@@ -41,6 +52,8 @@ export function DataProvider({ sessie, children }) {
         const d = await rpc('alles', { p_token: sessie.token })
         if (!actief.current) return // logged out meanwhile: do not write anything back
         versie.current = d.versie
+        const t = d.klas?.thema || {}
+        voorlaad([t.logo, t.banner, t.mascotte, ...(d.berichten || []).map((b) => b.afbeelding_pad)])
         setData(d)
         setFout(null)
         setLaatst(new Date())

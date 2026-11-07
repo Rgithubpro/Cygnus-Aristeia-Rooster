@@ -64,7 +64,7 @@ export default function RootApp() {
       <header className="head">
         <Mark size={44} />
         <div className="grow">
-          <h1>Klassenstrijd Root</h1>
+          <h1>Aristeia Root</h1>
           <p className="tagline">Organisatie</p>
         </div>
         {stap === 'klaar' && (
@@ -88,7 +88,7 @@ export default function RootApp() {
 
       {stap === 'klaar' && overzicht && (
         <>
-          <nav className="segment scroll" role="tablist">
+          <nav className="segment" role="tablist">
             {TABS.map(([id, label]) => (
               <button key={id} role="tab" aria-selected={tab === id} onClick={() => setTab(id)}>
                 {label}

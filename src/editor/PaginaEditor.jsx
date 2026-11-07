@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { afbeeldingUrl } from '../config.js'
+import BestandsKnop from '../BestandsKnop.jsx'
+import { PaginaBlokken } from '../Pagina.jsx'
 import { Sectie } from './bouwstenen.jsx'
 
 const NIEUW = {
@@ -78,7 +80,13 @@ export default function PaginaEditor({ laad, opslaan, upload, verwijder }) {
     setBezig(false)
   }
 
+  const voorbeeld = blokken
+    .map(schoon)
+    .filter((b) => (b.type === 'kop' || b.type === 'tekst' ? b.tekst.trim() : b.type === 'afbeelding' ? b.pad : b.type === 'link' ? /^https?:\/\/\S+$/.test(b.url) : b.type === 'lijst' ? b.items.some((x) => x.trim()) : true))
+    .map((b) => (b.type === 'lijst' ? { ...b, items: b.items.filter((x) => x.trim()) } : b))
+
   return (
+    <div className="pagina-split">
     <Sectie titel="Klaspagina" uitleg="Bouw je eigen pagina met blokken: kop, tekst, afbeelding, link, lijst. Zet daarna het tabblad 'Onze klas' aan (tab Tabs).">
       <div className="rij">
         {Object.keys(NIEUW).map((t) => (
@@ -103,7 +111,7 @@ export default function PaginaEditor({ laad, opslaan, upload, verwijder }) {
           {b.type === 'tekst' && <textarea value={b.tekst} maxLength={600} rows={4} onChange={(e) => wijzig(i, { tekst: e.target.value })} aria-label="Tekst" />}
           {b.type === 'afbeelding' && (
             <>
-              <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => kiesPlaatje(i, e.target.files?.[0])} />
+              <BestandsKnop label="Kies een afbeelding" bestand={null} onBestand={(f) => kiesPlaatje(i, f)} />
               {b.pad && <img className="pagina-voorbeeld" src={afbeeldingUrl(b.pad)} alt="" />}
               <input value={b.onderschrift} maxLength={100} placeholder="Onderschrift (optioneel)" onChange={(e) => wijzig(i, { onderschrift: e.target.value })} aria-label="Onderschrift" />
             </>
@@ -124,5 +132,10 @@ export default function PaginaEditor({ laad, opslaan, upload, verwijder }) {
         Pagina opslaan
       </button>
     </Sectie>
+    <aside className="card stack voorbeeld">
+      <h3>Voorbeeld (zo ziet je klas het)</h3>
+      {voorbeeld.length ? <PaginaBlokken blokken={voorbeeld} /> : <p className="note">Hier verschijnt een voorbeeld zodra je blokken toevoegt.</p>}
+    </aside>
+    </div>
   )
 }

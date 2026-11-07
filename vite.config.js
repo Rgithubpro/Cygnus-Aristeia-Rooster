@@ -5,13 +5,25 @@ import { VitePWA } from 'vite-plugin-pwa'
 // Cloudflare Workers Builds sets this on every build, so the app can show which commit is live.
 const commit = (process.env.WORKERS_CI_COMMIT_SHA || '').slice(0, 7) || 'lokaal'
 
+const BUILD_ID = `${commit}-${Date.now()}`
+
+// version.json lets the running app notice that a newer version exists (also on iPhones that keep old files).
+const versiebestand = () => ({
+  name: 'versie-bestand',
+  generateBundle() {
+    this.emitFile({ type: 'asset', fileName: 'version.json', source: JSON.stringify({ id: BUILD_ID }) })
+  },
+})
+
 export default defineConfig({
   define: {
+    __BUILD_ID__: JSON.stringify(BUILD_ID),
     __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
     __COMMIT__: JSON.stringify(commit),
   },
   plugins: [
     react(),
+    versiebestand(),
     VitePWA({
       strategies: 'injectManifest', // custom service worker (src/sw.js) for push notifications
       srcDir: 'src',
@@ -21,8 +33,8 @@ export default defineConfig({
       injectManifest: { globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'] },
       manifest: {
         id: '/',
-        name: 'Klassenstrijd',
-        short_name: 'Klassenstrijd',
+        name: 'Aristeia',
+        short_name: 'Aristeia',
         description: 'Jouw rooster voor de klassenstrijd.',
         lang: 'nl',
         start_url: '/',

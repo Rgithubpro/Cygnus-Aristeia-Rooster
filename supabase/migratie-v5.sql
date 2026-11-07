@@ -1,4 +1,4 @@
--- Klassenstrijd v5: leagues + new standings, and full per-class customization (theme + class page).
+-- Aristeia v5: leagues + new standings, and full per-class customization (theme + class page).
 -- Run once in the SQL Editor (after migratie-v4.sql). Everything here is additive: the previous app version keeps working.
 
 -- ======================= leagues and standings settings =======================

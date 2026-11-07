@@ -47,7 +47,7 @@ export default function Decoratie({ thema }) {
   return (
     <>
       {regen && <EmojiRegen emojis={emojis} aantal={thema.emoji_regen === 'veel' ? 22 : 9} />}
-      {mascotte && positie !== 'uit' && <img className={`mascotte ${positie}`} src={mascotte} alt="" aria-hidden="true" />}
+      {mascotte && positie !== 'uit' && <img crossOrigin="anonymous" className={`mascotte ${positie}`} src={mascotte} alt="" aria-hidden="true" />}
     </>
   )
 }

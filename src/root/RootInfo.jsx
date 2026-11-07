@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import BestandsKnop from '../BestandsKnop.jsx'
 import { rootRpc, uploadAfbeelding, verwijderAfbeelding } from './client.js'
 import { afbeeldingUrl } from '../config.js'
 import BerichtKaart from '../BerichtKaart.jsx'
@@ -71,7 +72,7 @@ export default function RootInfo({ overzicht }) {
         </label>
         <label className="veld">
           <span>Afbeelding (wordt verkleind tot max 1600 px)</span>
-          <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setBestand(e.target.files?.[0] || null)} />
+          <BestandsKnop onBestand={setBestand} bestand={bestand} />
         </label>
         {f.afbeelding_pad && !bestand && (
           <div className="rij">

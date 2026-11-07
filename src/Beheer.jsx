@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { WIKI_URL } from './config.js'
+import Modal from './Modal.jsx'
 import { rpc } from './api.js'
 import { useData } from './data.jsx'
 import { nl } from './strings.js'
@@ -8,6 +10,38 @@ import BeheerLeerlingen from './BeheerLeerlingen.jsx'
 import BeheerInfo from './BeheerInfo.jsx'
 import BeheerPush from './BeheerPush.jsx'
 import BeheerKlas from './BeheerKlas.jsx'
+
+const WIKI = (
+  <a href={WIKI_URL} target="_blank" rel="noopener noreferrer">
+    de wiki
+  </a>
+)
+
+function BeheerWelkom() {
+  const [open, setOpen] = useState(() => {
+    try {
+      return localStorage.getItem('ksv.beheer_welkom') !== '1'
+    } catch {
+      return false
+    }
+  })
+  if (!open) return null
+  const sluit = () => {
+    try {
+      localStorage.setItem('ksv.beheer_welkom', '1')
+    } catch {
+      /* ignore */
+    }
+    setOpen(false)
+  }
+  return (
+    <Modal titel="👋 Welkom, beheerder!" onSluit={sluit}>
+      <p>Hier regel je alles voor je klas: de activiteiten en wie meedoet, je leerlingen, berichten, en het uiterlijk van de hele app (kleuren, logo, app-icoon, een eigen klaspagina en meer).</p>
+      <p>Begin met de uitleg en tips op {WIKI}.</p>
+      <a className="btn" href={WIKI_URL} target="_blank" rel="noopener noreferrer">📖 Open de wiki</a>
+    </Modal>
+  )
+}
 
 export default function Beheer({ sessie }) {
   const [deel, setDeel] = useState('activiteiten')
@@ -22,7 +56,9 @@ export default function Beheer({ sessie }) {
   ]
   return (
     <div className="stack">
-      <div className="segment scroll" role="tablist">
+      <BeheerWelkom />
+      <p className="hulp">📖 Nieuw als beheerder? Lees {WIKI} voor uitleg en hulp om te beginnen.</p>
+      <div className="segment" role="tablist">
         {delen.map(([id, label]) => (
           <button key={id} role="tab" aria-selected={deel === id} onClick={() => setDeel(id)}>
             {label}

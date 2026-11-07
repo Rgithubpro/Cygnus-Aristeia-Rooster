@@ -1,4 +1,4 @@
--- Klassenstrijd v4: robustness. Run once in the SQL Editor (after migratie-v3.sql). Safe to run again.
+-- Aristeia v4: robustness. Run once in the SQL Editor (after migratie-v3.sql). Safe to run again.
 
 -- 1. Indexes on foreign keys (faster deletes and lookups)
 create index if not exists deelnames_leerling_id_idx on public.deelnames (leerling_id);

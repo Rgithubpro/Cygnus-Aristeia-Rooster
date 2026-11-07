@@ -18,7 +18,7 @@ export function PaginaBlokken({ blokken }) {
           case 'afbeelding':
             return (
               <figure key={i} className="pagina-plaatje">
-                <img src={afbeeldingUrl(b.pad)} alt={b.onderschrift || ''} loading="lazy" />
+                <img crossOrigin="anonymous" src={afbeeldingUrl(b.pad)} alt={b.onderschrift || ''} loading="lazy" />
                 {b.onderschrift && <figcaption className="note">{b.onderschrift}</figcaption>}
               </figure>
             )

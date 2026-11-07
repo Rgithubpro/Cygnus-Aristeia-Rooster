@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { rpc } from './api.js'
+import BestandsKnop from './BestandsKnop.jsx'
 import { afbeeldingUrl } from './config.js'
 import { useData } from './data.jsx'
 import { nl } from './strings.js'
@@ -65,7 +66,7 @@ export default function BeheerInfo({ sessie }) {
         </label>
         <label className="veld">
           <span>{nl.afbeelding}</span>
-          <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setBestand(e.target.files?.[0] || null)} />
+          <BestandsKnop onBestand={setBestand} bestand={bestand} />
         </label>
         {f.afbeelding_pad && !bestand && (
           <div className="rij">

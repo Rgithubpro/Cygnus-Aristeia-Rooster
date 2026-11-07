@@ -1,6 +1,6 @@
 import { rpc } from './api.js'
 import { useData } from './data.jsx'
-import { uploadKlasAfbeelding, verwijderKlasAfbeelding } from './upload.js'
+import { uploadKlasAfbeelding, uploadKlasPng, verwijderKlasAfbeelding } from './upload.js'
 import KlasEditor from './editor/KlasEditor.jsx'
 
 // Class admins can customize everything about their class here.
@@ -19,6 +19,7 @@ export default function BeheerKlas({ sessie }) {
       }}
       paginaLaad={() => rpc('pagina_ophalen', { p_token: sessie.token })}
       upload={(bestand, maxPx) => uploadKlasAfbeelding(sessie, bestand, maxPx)}
+      uploadPng={(blob, naam) => uploadKlasPng(sessie, blob, naam)}
       verwijder={(pad) => verwijderKlasAfbeelding(sessie, pad)}
     />
   )

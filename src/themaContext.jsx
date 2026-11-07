@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, useSyncExternalStore } from 'react'
 import { berekenThema } from './themaModel.js'
+import { useVoorkeur } from './voorkeur.js'
 
 const QUERY = '(prefers-color-scheme: dark)'
 function useSysteemDonker() {
@@ -46,7 +47,14 @@ export const useThema = () => useContext(Ctx)
 // `concept` is an unsaved draft from the editor: the whole app previews it live.
 export function ThemaProvider({ opgeslagen, children }) {
   const [concept, zetConcept] = useState(null)
-  const thema = concept ?? opgeslagen ?? {}
+  const [voork] = useVoorkeur()
+  const basis = concept ?? opgeslagen ?? {}
+  const thema = {
+    ...basis,
+    ...(voork.modus ? { modus: voork.modus } : {}),
+    ...(voork.tekstgrootte ? { tekstgrootte: voork.tekstgrootte } : {}),
+    ...(voork.regen_uit ? { emoji_regen: 'uit' } : {}),
+  }
   useThemaToepassen(thema)
   return <Ctx.Provider value={{ thema, opgeslagen: opgeslagen ?? {}, concept, zetConcept }}>{children}</Ctx.Provider>
 }

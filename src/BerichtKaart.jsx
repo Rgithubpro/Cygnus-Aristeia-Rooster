@@ -17,7 +17,7 @@ export default function BerichtKaart({ b, acties }) {
       </div>
       {b.afbeelding_pad && (
         <button className="plaatje" onClick={() => setGroot(true)} aria-label={b.titel}>
-          <img src={afbeeldingUrl(b.afbeelding_pad)} alt="" loading="lazy" />
+          <img crossOrigin="anonymous" src={afbeeldingUrl(b.afbeelding_pad)} alt="" loading="lazy" />
         </button>
       )}
       {b.tekst && <TekstMetLinks tekst={b.tekst} />}
@@ -25,7 +25,7 @@ export default function BerichtKaart({ b, acties }) {
       {acties}
       {groot && (
         <Modal titel={b.titel} onSluit={() => setGroot(false)}>
-          <img className="groot" src={afbeeldingUrl(b.afbeelding_pad)} alt={b.titel} />
+          <img crossOrigin="anonymous" className="groot" src={afbeeldingUrl(b.afbeelding_pad)} alt={b.titel} />
         </Modal>
       )}
     </li>

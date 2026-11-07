@@ -1,4 +1,4 @@
--- Klassenstrijd v3: per-class customization (display name, colours, logo, emoji, slogan),
+-- Aristeia v3: per-class customization (display name, colours, logo, emoji, slogan),
 -- emoji per activity, pictures in class announcements (uploaded by class admins).
 -- Run ONCE in the SQL Editor on a database that already has schema.sql (v2), then deploy the new app code right away
 -- (a few admin functions changed their parameters).

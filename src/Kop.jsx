@@ -17,7 +17,7 @@ export default function Kop({ klas, thema = {}, onUitloggen }) {
 
   let beeld = null
   if (toon.logo) {
-    if (logo) beeld = <img className="klas-logo" style={{ width: grootte, height: grootte }} src={logo} alt="" />
+    if (logo) beeld = <img crossOrigin="anonymous" className="klas-logo" style={{ width: grootte, height: grootte }} src={logo} alt="" />
     else if (thema.emoji) beeld = <span className="klas-emoji" style={{ fontSize: groot ? '3rem' : '2rem', width: grootte }} aria-hidden="true">{thema.emoji}</span>
     else beeld = <Mark size={grootte} />
   }
