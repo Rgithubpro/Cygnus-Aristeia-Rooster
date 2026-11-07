@@ -10,24 +10,28 @@ create table if not exists public.stand_dag (
 alter table public.stand_dag enable row level security;
 revoke all on public.stand_dag from anon, authenticated;
 alter table public.instellingen add column if not exists stand_tab_forceer boolean not null default false;
-update public.instellingen set stand_toon_punten_dag1 = false where id = 1;
+alter table public.instellingen alter column stand_toon_punten_dag1 set default false;
 
--- patch existing functions in place
+-- patch existing functions in place (safe to run again: already patched functions are skipped)
 do $do$
 declare d text;
 begin
   d := pg_get_functiondef('public.alles(text)'::regprocedure);
-  if position($p$'uitslag_tot_dag', i.uitslag_tot_dag,$p$ in d) = 0 or position($p$else json_build_object('id', l.id, 'naam', l.naam) end$p$ in d) = 0 then
-    raise exception 'alles: patroon niet gevonden';
+  if position('stand_tab_forceer' in d) = 0 then
+    if position($p$'uitslag_tot_dag', i.uitslag_tot_dag,$p$ in d) = 0 or position($p$else json_build_object('id', l.id, 'naam', l.naam) end$p$ in d) = 0 then
+      raise exception 'alles: patroon niet gevonden';
+    end if;
+    d := replace(d, $p$'uitslag_tot_dag', i.uitslag_tot_dag,$p$, $p$'uitslag_tot_dag', i.uitslag_tot_dag, 'stand_tab_forceer', i.stand_tab_forceer,$p$);
+    d := replace(d, $p$else json_build_object('id', l.id, 'naam', l.naam) end$p$, $p$else json_build_object('id', l.id, 'naam', l.naam, 'rol_info', l.rol_info) end$p$);
+    execute d;
   end if;
-  d := replace(d, $p$'uitslag_tot_dag', i.uitslag_tot_dag,$p$, $p$'uitslag_tot_dag', i.uitslag_tot_dag, 'stand_tab_forceer', i.stand_tab_forceer,$p$);
-  d := replace(d, $p$else json_build_object('id', l.id, 'naam', l.naam) end$p$, $p$else json_build_object('id', l.id, 'naam', l.naam, 'rol_info', l.rol_info) end$p$);
-  execute d;
 
   d := pg_get_functiondef('public._thema_schoon(uuid,jsonb,boolean)'::regprocedure);
-  if position($p$array['logo', 'banner', 'mascotte']$p$ in d) = 0 then raise exception '_thema_schoon: patroon niet gevonden'; end if;
-  d := replace(d, $p$array['logo', 'banner', 'mascotte']$p$, $p$array['logo', 'banner', 'mascotte', 'icoon']$p$);
-  execute d;
+  if position($p$'mascotte', 'icoon']$p$ in d) = 0 then
+    if position($p$array['logo', 'banner', 'mascotte']$p$ in d) = 0 then raise exception '_thema_schoon: patroon niet gevonden'; end if;
+    d := replace(d, $p$array['logo', 'banner', 'mascotte']$p$, $p$array['logo', 'banner', 'mascotte', 'icoon']$p$);
+    execute d;
+  end if;
 end $do$;
 
 create or replace function public.start_info() returns json
