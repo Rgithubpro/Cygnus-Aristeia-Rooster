@@ -49,7 +49,7 @@ export default function KlasEditor({ klas, opslaanThema, opslaanPagina, paginaLa
   const [naam, setNaam] = useState(klas.weergavenaam || '')
   const [t, setT] = useState(() => ({ ...(klas.thema || {}) }))
   const [bestanden, setBestanden] = useState({})
-  const [icoon, setIcoon] = useState({ actief: false, bron: 'logo', bestand: null, marge: 12, achtergrond: '#ffffff' })
+  const [icoon, setIcoon] = useState({ actief: false, bron: 'logo', bestand: null, marge: 12, achtergrond: '#ffffff', modus: 'passend', zoom: 100, dx: 0, dy: 0 })
   const zetIcoon = (p) => {
     setOk(false)
     setIcoon((v) => ({ ...v, ...p, actief: true }))
@@ -126,7 +126,7 @@ export default function KlasEditor({ klas, opslaanThema, opslaanPagina, paginaLa
     setNaam(klas.weergavenaam || '')
     setT({ ...(klas.thema || {}) })
     setBestanden({})
-    setIcoon({ actief: false, bron: 'logo', bestand: null, marge: 12, achtergrond: '#ffffff' })
+    setIcoon({ actief: false, bron: 'logo', bestand: null, marge: 12, achtergrond: '#ffffff', modus: 'passend', zoom: 100, dx: 0, dy: 0 })
     setFout('')
   }
   const reset = () => {

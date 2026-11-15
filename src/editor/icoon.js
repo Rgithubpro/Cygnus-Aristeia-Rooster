@@ -3,18 +3,21 @@ export async function laadBitmap(bron) {
   const blob = typeof bron === 'string' ? await (await fetch(bron, { mode: 'cors' })).blob() : bron
   return createImageBitmap(blob)
 }
-function teken(bmp, S, { marge, achtergrond }, maskable) {
+function teken(bmp, S, opt, maskable) {
+  const { marge = 12, achtergrond = '#ffffff', modus = 'passend', zoom = 100, dx = 0, dy = 0 } = opt
   const c = document.createElement('canvas')
   c.width = c.height = S
   const x = c.getContext('2d')
   x.fillStyle = achtergrond || '#ffffff' // always opaque: iPhones turn transparent icons black
   x.fillRect(0, 0, S, S)
-  let binnen = S * (1 - (2 * marge) / 100)
-  if (maskable) binnen = Math.min(binnen, S * 0.62)
-  const sc = Math.min(binnen / bmp.width, binnen / bmp.height)
+  const vul = modus === 'vullend' // the picture covers the whole icon (and is cropped)
+  let binnen = vul ? S : S * (1 - (2 * marge) / 100)
+  if (maskable && !vul) binnen = Math.min(binnen, S * 0.62)
+  binnen *= zoom / 100
+  const sc = vul ? Math.max(binnen / bmp.width, binnen / bmp.height) : Math.min(binnen / bmp.width, binnen / bmp.height)
   const w = bmp.width * sc
   const h = bmp.height * sc
-  x.drawImage(bmp, (S - w) / 2, (S - h) / 2, w, h)
+  x.drawImage(bmp, (S - w) / 2 + (S * dx) / 100, (S - h) / 2 + (S * dy) / 100, w, h)
   return c
 }
 const blobVan = (c) => new Promise((res) => c.toBlob(res, 'image/png'))

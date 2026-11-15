@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { nl } from './strings.js'
 
+// Rendered directly on <body> so a popup always covers the whole screen, whatever it is opened from.
 export default function Modal({ titel, onSluit, children }) {
   useEffect(() => {
     const op = (e) => e.key === 'Escape' && onSluit()
@@ -8,7 +10,7 @@ export default function Modal({ titel, onSluit, children }) {
     return () => document.removeEventListener('keydown', op)
   }, [onSluit])
 
-  return (
+  return createPortal(
     <div className="modal" role="dialog" aria-modal="true" aria-label={titel} onClick={onSluit}>
       <div className="modal-kaart stack" onClick={(e) => e.stopPropagation()}>
         {titel && <h2>{titel}</h2>}
@@ -17,6 +19,7 @@ export default function Modal({ titel, onSluit, children }) {
           {nl.sluiten}
         </button>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

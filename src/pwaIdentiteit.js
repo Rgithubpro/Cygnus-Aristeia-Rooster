@@ -7,7 +7,7 @@ export function useAppIdentiteit(naam, slug, thema) {
   const icoon512 = thema?.icoon || ''
   const kleur = thema?.achtergrond || ''
   useEffect(() => {
-    if (!slug || !naam) return
+    if (!slug || !naam || !icoon512) return // without a class app icon the app stays plain "Aristeia" with the swan icon
     const origin = location.origin
     let link = document.querySelector('link[rel="manifest"]')
     if (!link) {

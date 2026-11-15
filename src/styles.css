@@ -364,3 +364,41 @@ input:focus, select:focus, textarea:focus { box-shadow: 0 0 0 3px color-mix(in s
 html[data-animaties='uit'] *, html[data-animaties='uit'] *::before, html[data-animaties='uit'] *::after {
   animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; animation-delay: 0s !important; transition-duration: 0.001ms !important;
 }
+
+/* ---------- v7: no scrollbars, calmer animations, better icon preview ---------- */
+* { scrollbar-width: none; -ms-overflow-style: none; }
+*::-webkit-scrollbar { display: none; width: 0; height: 0; }
+.modal-kaart { overflow-y: auto; overscroll-behavior: contain; }
+img.groot { width: auto; max-width: 100%; max-height: 62vh; margin: 0 auto; display: block; border-radius: var(--r-m, 0.7rem); }
+
+/* finished animations leave nothing behind (no stuck transforms, which broke popups and sticky bars) */
+.tab-in, .modal, .modal-kaart, .fout-vanger, .update-balk, .head,
+.card, .activiteit, .keuze, .stand li, .palet, .banner, .dagbericht, .hulp, .blok { animation-fill-mode: backwards; }
+.activiteit.huidig { animation: in-op 0.35s ease backwards, glow 3s ease-in-out 0.4s infinite; }
+
+/* hover lifts only where a real mouse exists; on phones they used to stay "stuck" after a tap */
+@media (hover: none) {
+  .btn:hover { filter: none; transform: none; }
+  .palet:hover, .kleur:hover, .keuze:hover, .emoji-rooster button:hover { transform: none; }
+}
+
+/* more motion */
+@keyframes kop-in { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
+@keyframes wiebel { 25% { transform: rotate(-6deg) scale(1.05); } 75% { transform: rotate(6deg) scale(1.05); } }
+@keyframes vink-pop { 50% { transform: scale(1.25); } }
+.head { animation: kop-in 0.5s ease backwards; }
+.activiteiten > li:nth-child(6), .stand > li:nth-child(6), .keuzelijst > li:nth-child(6) { animation-delay: 0.25s; }
+.activiteiten > li:nth-child(7), .stand > li:nth-child(7), .keuzelijst > li:nth-child(7) { animation-delay: 0.3s; }
+.activiteiten > li:nth-child(8), .stand > li:nth-child(8), .keuzelijst > li:nth-child(8) { animation-delay: 0.35s; }
+.activiteiten > li:nth-child(n + 9), .stand > li:nth-child(n + 9), .keuzelijst > li:nth-child(n + 9) { animation-delay: 0.4s; }
+.keuzelijst > li:nth-child(2) { animation-delay: 0.05s; } .keuzelijst > li:nth-child(3) { animation-delay: 0.1s; }
+.keuzelijst > li:nth-child(4) { animation-delay: 0.15s; } .keuzelijst > li:nth-child(5) { animation-delay: 0.2s; }
+input[type='checkbox']:checked { animation: vink-pop 0.25s ease; }
+.opslaanbalk { animation: in-op 0.4s ease backwards; }
+@media (hover: hover) { .klas-logo:hover, .mark:hover, .klas-emoji:hover { animation: wiebel 0.6s ease; } }
+
+/* app icon previews: bigger and closer to the real thing */
+.icoon-doos { width: 6.5rem; height: 6.5rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18); }
+.icoon-doos.ios { border-radius: 22.5%; } .icoon-doos.rond { border-radius: 50%; } .icoon-doos.afgerond { border-radius: 30%; }
+.tab-mock { display: flex; align-items: center; gap: 0.5rem; padding: 0.55rem 0.9rem; min-width: 8rem; background: var(--surface); border: 1px solid var(--line); border-radius: 0.7rem 0.7rem 0 0; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12); font-size: 0.85rem; }
+.tab-mock img { width: 1.4rem; height: 1.4rem; border-radius: 0.3rem; }
