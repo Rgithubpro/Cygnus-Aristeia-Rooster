@@ -24,6 +24,8 @@ import UpdateBalk from './UpdateBalk.jsx'
 import Instellingen from './Instellingen.jsx'
 import Welkom, { InstallTip, InstallUitleg } from './Welkom.jsx'
 import { useVoorkeur } from './voorkeur.js'
+import { analyticsConfigured, startAnalytics, stopAnalytics, useAnalyticsToestemming } from './analytics.js'
+import { AnalyticsConsentPrompt, AnalyticsTabWeergave } from './AnalyticsConsent.jsx'
 
 // The Root panel (and the Supabase login library) is only downloaded on /root.
 const RootApp = lazy(() => import('./root/RootApp.jsx'))
@@ -82,6 +84,13 @@ function Inhoud() {
 function LeerlingApp() {
   const online = useOnline()
   const [sessie, setSessie] = useState(laadSessie)
+  const analyticsToestemming = useAnalyticsToestemming()
+
+  useEffect(() => {
+    if (!analyticsConfigured()) return
+    if (analyticsToestemming === 'granted') startAnalytics()
+    else if (analyticsToestemming === 'denied') stopAnalytics()
+  }, [analyticsToestemming])
 
   useEffect(() => {
     setBijOngeldigeSessie(() => {
@@ -116,12 +125,24 @@ function LeerlingApp() {
     </p>
   )
 
-  if (!sessie) return <LoginScherm onKlaar={update} offline={offline} />
+  const analyticsPrompt = analyticsConfigured() && analyticsToestemming === null ? <AnalyticsConsentPrompt /> : null
+
+  if (!sessie) {
+    return (
+      <>
+        <LoginScherm onKlaar={update} offline={offline} />
+        {analyticsPrompt}
+      </>
+    )
+  }
 
   return (
-    <DataProvider sessie={sessie}>
-      <ThemaDoos sessie={sessie} update={update} uitloggen={uitloggen} offline={offline} />
-    </DataProvider>
+    <>
+      <DataProvider sessie={sessie}>
+        <ThemaDoos sessie={sessie} update={update} uitloggen={uitloggen} offline={offline} />
+      </DataProvider>
+      {analyticsPrompt}
+    </>
   )
 }
 
@@ -221,6 +242,7 @@ function Shell({ sessie, update, uitloggen, offline, klas }) {
       </nav>
 
       <div key={actief} className="tab-in stack">
+        <AnalyticsTabWeergave tab={actief} klasSlug={sessie.klas?.slug} rol={sessie.rol} />
         {actief === 'rooster' && <Rooster />}
         {actief === 'info' && <Info />}
         {actief === 'stand' && <Stand sessie={sessie} />}

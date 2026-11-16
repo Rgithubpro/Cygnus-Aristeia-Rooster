@@ -35,7 +35,16 @@ Stack: React + Vite + vite-plugin-pwa, Cloudflare Workers (static assets), Supab
    - Run `supabase/cron.sql` in the SQL Editor after replacing the two placeholders (do not commit the real values).
 6. **Keep-alive:** GitHub repo secrets `SUPABASE_URL` and `SUPABASE_KEY`. `.github/workflows/keep-alive.yml` pings the database every
    3 days so the free project never pauses. GitHub disables scheduled workflows after 60 days without repo activity.
-7. **Cloudflare Workers Builds:** build `npm run build`, deploy `npx wrangler deploy`. No variables needed.
+7. **Cloudflare Workers Builds:** build `npm run build`, deploy `npx wrangler deploy`. Supabase values are in `src/config.js`.
+8. **Optional Google Analytics (GA4):** create a GA4 property and web data stream, then add its measurement ID
+   (format `G-XXXXXXXXXX`) as the `VITE_GA_MEASUREMENT_ID` build variable in Cloudflare Workers Builds. It is also
+   possible to put this variable in a local `.env.local` file for local testing; do not commit that file. Rebuild and
+   deploy after setting the variable. Without a valid ID, analytics stays off and users are not shown a consent prompt.
+   The app asks for permission before loading Google’s script. It sends the class slug and role with app-tab page
+   views, and sends the class slug and admin-section ID when a class admin opens a section. It never sends a user's
+   name, student ID, session token, or class route. In GA4, register event-scoped custom dimensions `class_slug`,
+   `user_role`, and `admin_page` to report on those values. Check with the school’s privacy contact that GA4 and the
+   consent text are appropriate before enabling it, especially because students may be minors.
 
 ## Check that notifications work
 
@@ -96,7 +105,12 @@ offers "Nu vernieuwen" in the meantime.
   storage policy, with the admin's class session as proof.
 - All text is rendered as plain text. No HTML, no embed code. Links ask for confirmation. Images can only be uploaded by Root.
 - The ranking is only returned for days Root made visible. Push can only be sent by Root or by an admin to their own class.
-- No third-party analytics. Personal data is removed with one button, or automatically 14 days after the end date.
+- Optional GA4 is loaded only after a user's explicit opt-in and only on the student-facing app; it records the class
+  slug, role, general tab views, and (for class admins) admin-section views. It never sends names, student IDs, session
+  tokens, rosters, or class routes. Do not send personal data to Google Analytics; users can withdraw consent in
+  Instellingen, which stops further analytics events. Google may process technical browser data and set analytics
+  cookies while consent is enabled. If `VITE_GA_MEASUREMENT_ID` is unset or invalid, no analytics script is loaded.
+  Personal data is removed with one button, or automatically 14 days after the end date.
 
 ## License
 
