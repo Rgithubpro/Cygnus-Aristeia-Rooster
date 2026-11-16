@@ -4,6 +4,7 @@ import { nl } from './strings.js'
 import Banner from './Banner.jsx'
 import Kop from './Kop.jsx'
 import Welkom from './Welkom.jsx'
+import { useAppIdentiteit } from './pwaIdentiteit.js'
 
 // /k/<slug> (from the class QR code or link) pre-selects the class. The login screen always uses the default look:
 // the class look only appears after logging in.
@@ -19,6 +20,9 @@ export default function LoginScherm({ onKlaar, offline }) {
   useEffect(() => {
     rpc('start_info').then(setInfo).catch(() => setFout(nl.laadFout))
   }, [])
+
+  const klas = info?.klassen.find((k) => k.slug === slug)
+  useAppIdentiteit(klas ? klas.naam : null, klas?.slug, { icoon: klas?.icoon })
 
   async function verstuur(e) {
     e.preventDefault()

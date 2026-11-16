@@ -402,3 +402,15 @@ input[type='checkbox']:checked { animation: vink-pop 0.25s ease; }
 .icoon-doos.ios { border-radius: 22.5%; } .icoon-doos.rond { border-radius: 50%; } .icoon-doos.afgerond { border-radius: 30%; }
 .tab-mock { display: flex; align-items: center; gap: 0.5rem; padding: 0.55rem 0.9rem; min-width: 8rem; background: var(--surface); border: 1px solid var(--line); border-radius: 0.7rem 0.7rem 0 0; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12); font-size: 0.85rem; }
 .tab-mock img { width: 1.4rem; height: 1.4rem; border-radius: 0.3rem; }
+
+/* ---------- v8: more activity colours, templates ---------- */
+.activiteit.c-roze { --kc: #d6336c; } .activiteit.c-turquoise { --kc: #0e9aa7; } .activiteit.c-limoen { --kc: #6aa310; }
+.activiteit.c-oranje { --kc: #f08c00; } .activiteit.c-rood { --kc: #d62828; } .activiteit.c-indigo { --kc: #4361ee; }
+.activiteit.c-bruin { --kc: #8d5524; } .activiteit.c-goud { --kc: #b8860b; } .activiteit.c-eigen { --kc: #2f56d9; }
+@media (prefers-color-scheme: dark) {
+  .activiteit.c-roze { --kc: #ff7fae; } .activiteit.c-turquoise { --kc: #4dd6e3; } .activiteit.c-limoen { --kc: #b6e35a; }
+  .activiteit.c-oranje { --kc: #ffb74d; } .activiteit.c-rood { --kc: #ff7b7b; } .activiteit.c-indigo { --kc: #8da2ff; }
+  .activiteit.c-bruin { --kc: #d2a073; } .activiteit.c-goud { --kc: #ffd54a; }
+}
+.sjabloon { padding-top: 0.6rem; border-top: 1px solid var(--line); }
+.sjablonen > summary { cursor: pointer; }

@@ -98,7 +98,7 @@ export default function Rooster() {
             const nuBezig = toon.nu && isHuidig(a, data.instellingen, nu)
             const wiens = toon.voor ? voorWie(a) : ''
             return (
-              <li key={a.id} className={`activiteit c-${a.kleur}${nuBezig ? ' huidig' : ''}`}>
+              <li key={a.id} className={`activiteit c-${a.kleur.startsWith('#') ? 'eigen' : a.kleur}${nuBezig ? ' huidig' : ''}`} style={a.kleur.startsWith('#') ? { '--kc': a.kleur } : undefined}>
                 <div className="act-tijd">
                   <strong>{a.start}</strong>
                   {toon.einde && <span>t/m {a.eind}</span>}

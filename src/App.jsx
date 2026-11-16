@@ -22,7 +22,7 @@ import Beheer from './Beheer.jsx'
 import { FoutVanger } from './FoutGrens.jsx'
 import UpdateBalk from './UpdateBalk.jsx'
 import Instellingen from './Instellingen.jsx'
-import Welkom, { InstallTip, InstallUitleg } from './Welkom.jsx'
+import Welkom, { IcoonHint, InstallTip, InstallUitleg } from './Welkom.jsx'
 import { useVoorkeur } from './voorkeur.js'
 
 // The Root panel (and the Supabase login library) is only downloaded on /root.
@@ -229,6 +229,7 @@ function Shell({ sessie, update, uitloggen, offline, klas }) {
       </div>
 
       <Welkom sessie={sessie} leerlingId={leerlingId} />
+      <IcoonHint icoon={opgeslagen.icoon} slug={sessie.klas?.slug} />
       {instellingen && <Instellingen sessie={sessie} leerlingId={leerlingId} uitloggen={uitloggen} onSluit={() => setInstellingen(false)} onMeldingen={() => { setInstellingen(false); setMeldingen(true) }} onInstall={() => { setInstellingen(false); setInstallUitleg(true) }} />}
       {installUitleg && <InstallUitleg onSluit={() => setInstallUitleg(false)} />}
 

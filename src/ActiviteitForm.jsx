@@ -56,16 +56,15 @@ export default function ActiviteitForm({ startwaarde, leerlingen = [], anderen =
             <option value={2}>{nl.dag} 2</option>
           </select>
         </label>
-        <label className="veld grow">
-          <span>{nl.kleur}</span>
-          <select value={f.kleur} onChange={zet('kleur')}>
-            {KLEUREN.map(([k, l]) => (
-              <option key={k} value={k}>
-                {l}
-              </option>
-            ))}
-          </select>
-        </label>
+      </div>
+      <div className="veld">
+        <span>{nl.kleur}</span>
+        <div className="kleuren">
+          {KLEUREN.map(([k, l, hex]) => (
+            <button type="button" key={k} className={`kleur${f.kleur === k ? ' gekozen' : ''}`} style={{ background: hex }} aria-label={l} title={l} onClick={() => setF({ ...f, kleur: k })} />
+          ))}
+          <input type="color" value={f.kleur.startsWith('#') ? f.kleur : '#2f56d9'} onChange={(e) => setF({ ...f, kleur: e.target.value })} aria-label="Eigen kleur" />
+        </div>
       </div>
       <div className="rij">
         <label className="veld grow">

@@ -64,7 +64,7 @@ export default function RootKlassen({ overzicht, herlaad }) {
                 <h1>{b.naam}</h1>
                 <img src={b.img} alt="" />
                 <p>{b.url}</p>
-                <p>Scan de code en log in met het wachtwoord van je klas.</p>
+                <p>Scan de code en log in met het wachtwoord van je klas. Installeer de app vanaf deze link, dan krijgt hij het icoon van je klas.</p>
               </section>
             ))}
           </div>,

@@ -34,6 +34,34 @@ export function installStappen() {
   return ['Klik rechts in de adresbalk op het installatie-icoontje (een scherm met een pijl).', 'Kies "Installeren".']
 }
 
+// An installed app keeps the icon it was installed with. If it was installed without the class icon, explain how to get it.
+export function IcoonHint({ icoon, slug }) {
+  const [dicht, setDicht] = useState(() => gezien('ksv.icoon_hint'))
+  const [gekopieerd, setGekopieerd] = useState(false)
+  let start = ''
+  try {
+    start = new URL(performance.getEntriesByType('navigation')[0]?.name || location.href).pathname
+  } catch {
+    /* ignore */
+  }
+  if (dicht || !icoon || !slug || !isStandalone() || start !== '/') return null
+  const link = `${location.origin}/k/${slug}`
+  return (
+    <Modal titel="🎨 Het icoon van je klas" onSluit={() => { markeer('ksv.icoon_hint'); setDicht(true) }}>
+      <p>Je klas heeft een eigen app-icoon, maar deze app staat met het standaard-icoon op je beginscherm. Een icoon kan achteraf niet worden veranderd. Zo krijg je het klas-icoon:</p>
+      <ol className="pagina-lijst">
+        <li>Verwijder deze app van je beginscherm.</li>
+        <li>Open de link van je klas in je browser: <span className="woord-af">{link}</span></li>
+        {installStappen().map((x, i) => <li key={i}>{x}</li>)}
+        <li>Log daarna opnieuw in (een app op een iPhone heeft zijn eigen opslag).</li>
+      </ol>
+      <button className="btn ghost" onClick={async () => { try { await navigator.clipboard.writeText(link); setGekopieerd(true) } catch { /* ignore */ } }}>
+        {gekopieerd ? '✓ Link gekopieerd' : '📋 Kopieer de klaslink'}
+      </button>
+    </Modal>
+  )
+}
+
 export function InstallUitleg({ onSluit }) {
   const stappen = installStappen()
   const kan = typeof window !== 'undefined' && window.__installPrompt
@@ -50,6 +78,7 @@ export function InstallUitleg({ onSluit }) {
           Nu installeren
         </button>
       )}
+      <p className="note">💡 Installeer via de link of QR-code van je klas: dan krijgt de app het icoon van je klas (als je klas er een heeft).</p>
       <strong>Zo doe je het:</strong>
       <ol className="pagina-lijst">
         {stappen.map((x, i) => <li key={i}>{x}</li>)}

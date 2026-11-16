@@ -1,10 +1,8 @@
 export const KLEUREN = [
-  ['blauw', '🔵 Blauw'],
-  ['groen', '🟢 Groen'],
-  ['amber', '🟡 Amber'],
-  ['paars', '🟣 Paars'],
-  ['koraal', '🔴 Koraal'],
-  ['grijs', '⚪ Grijs'],
+  ['blauw', '🔵 Blauw', '#2f56d9'], ['groen', '🟢 Groen', '#1f8a4c'], ['amber', '🟡 Amber', '#c98a0b'], ['paars', '🟣 Paars', '#7a3cc4'],
+  ['koraal', '🔴 Koraal', '#d9534f'], ['grijs', '⚪ Grijs', '#6b7280'], ['roze', 'Roze', '#d6336c'], ['turquoise', 'Turquoise', '#0e9aa7'],
+  ['limoen', 'Limoen', '#7cb518'], ['oranje', 'Oranje', '#f08c00'], ['rood', 'Rood', '#d62828'], ['indigo', 'Indigo', '#4361ee'],
+  ['bruin', 'Bruin', '#8d5524'], ['goud', 'Goud', '#b8860b'],
 ]
 
 export function emoji(titel = '') {

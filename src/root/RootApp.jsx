@@ -4,6 +4,7 @@ import { rootClient, rootRpc } from './client.js'
 import RootKlassen from './RootKlassen.jsx'
 import RootProgramma from './RootProgramma.jsx'
 import RootInfo from './RootInfo.jsx'
+import RootSjablonen from './RootSjablonen.jsx'
 import RootStand from './RootStand.jsx'
 import RootPush from './RootPush.jsx'
 import RootInstellingen from './RootInstellingen.jsx'
@@ -12,6 +13,7 @@ import RootVeiligheid from './RootVeiligheid.jsx'
 const TABS = [
   ['klassen', 'Klassen'],
   ['programma', 'Programma'],
+  ['sjablonen', 'Sjablonen'],
   ['info', 'Info'],
   ['stand', 'Stand'],
   ['push', 'Meldingen'],
@@ -97,6 +99,7 @@ export default function RootApp() {
           </nav>
           {tab === 'klassen' && <RootKlassen overzicht={overzicht} herlaad={herlaad} />}
           {tab === 'programma' && <RootProgramma overzicht={overzicht} />}
+          {tab === 'sjablonen' && <RootSjablonen overzicht={overzicht} />}
           {tab === 'info' && <RootInfo overzicht={overzicht} />}
           {tab === 'stand' && <RootStand overzicht={overzicht} herlaad={herlaad} />}
           {tab === 'push' && <RootPush overzicht={overzicht} />}

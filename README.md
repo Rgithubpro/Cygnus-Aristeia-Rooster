@@ -17,7 +17,7 @@ Stack: React + Vite + vite-plugin-pwa, Cloudflare Workers (static assets), Supab
 1. **Supabase project** in region Frankfurt. Authentication, Sign In / Providers: **turn off "Allow new users to sign up"**
    (only you need an account).
 2. **SQL Editor:** if you ran the earlier scaffold, run `supabase/reset.sql` first. Then run `supabase/schema.sql`, then
-   `supabase/migratie-v3.sql` (customization), `supabase/migratie-v4.sql` (robustness), `supabase/migratie-v5.sql` (leagues + customization), `supabase/migratie-v6.sql` (places-based standings, app icons), then (for testing)
+   `supabase/migratie-v3.sql` (customization), `supabase/migratie-v4.sql` (robustness), `supabase/migratie-v5.sql` (leagues + customization), `supabase/migratie-v6.sql` (places-based standings, app icons), `supabase/migratie-v7.sql` (more colours, example roosters), then (for testing)
    `supabase/seed-demo.sql`.
    Also turn ON Authentication, Sign In / Providers, "Allow anonymous sign-ins": class admins use it only to get permission
    to upload pictures into their own class folder (new sign-ups by email stay off).
@@ -69,6 +69,17 @@ Class admins customize everything under Beheer, tab "Uiterlijk": name, slogan, l
 fonts, shapes, header and card styles, what is shown, background pattern, emoji strip/rain, tabs and a free-form class page.
 The app previews changes live. The class logo and colours also theme the login link, notifications and (best effort) the installed
 app icon: install the app after opening your class link.
+
+## Installing with the class icon
+
+An installed app keeps the icon it was installed with; a website cannot change it afterwards. So install from the class link or QR
+code (`/k/<klas>`): when the class has an app icon, the app is installed with that icon and name. An app that was installed with the
+swan icon shows a hint after login on how to reinstall it with the class icon.
+
+## Example roosters
+
+In `/root` (Sjablonen) the organisers make example roosters, for all classes or chosen classes. Class admins see them at the top of
+Beheer, Activiteiten, copy the parts they want (optionally with their whole class added) and then only adjust and add students.
 
 ## Troubleshooting
 

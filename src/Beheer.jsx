@@ -9,6 +9,7 @@ import ActiviteitForm, { LEEG } from './ActiviteitForm.jsx'
 import BeheerLeerlingen from './BeheerLeerlingen.jsx'
 import BeheerInfo from './BeheerInfo.jsx'
 import BeheerPush from './BeheerPush.jsx'
+import BeheerSjablonen from './BeheerSjablonen.jsx'
 import BeheerKlas from './BeheerKlas.jsx'
 
 const WIKI = (
@@ -123,6 +124,7 @@ function Activiteiten({ sessie }) {
 
   return (
     <div className="stack">
+      <BeheerSjablonen sessie={sessie} />
       <button className="btn" onClick={() => setBewerk({ ...LEEG })}>
         {nl.nieuweActiviteit}
       </button>
