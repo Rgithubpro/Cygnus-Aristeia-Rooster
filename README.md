@@ -36,15 +36,47 @@ Stack: React + Vite + vite-plugin-pwa, Cloudflare Workers (static assets), Supab
 6. **Keep-alive:** GitHub repo secrets `SUPABASE_URL` and `SUPABASE_KEY`. `.github/workflows/keep-alive.yml` pings the database every
    3 days so the free project never pauses. GitHub disables scheduled workflows after 60 days without repo activity.
 7. **Cloudflare Workers Builds:** build `npm run build`, deploy `npx wrangler deploy`. Supabase values are in `src/config.js`.
-8. **Optional Google Analytics (GA4):** create a GA4 property and web data stream, then add its measurement ID
-   (format `G-XXXXXXXXXX`) as the `VITE_GA_MEASUREMENT_ID` build variable in Cloudflare Workers Builds. It is also
-   possible to put this variable in a local `.env.local` file for local testing; do not commit that file. Rebuild and
-   deploy after setting the variable. Without a valid ID, analytics stays off and users are not shown a consent prompt.
-   The app asks for permission before loading Google’s script. It sends the class slug and role with app-tab page
-   views, and sends the class slug and admin-section ID when a class admin opens a section. It never sends a user's
-   name, student ID, session token, or class route. In GA4, register event-scoped custom dimensions `class_slug`,
-   `user_role`, and `admin_page` to report on those values. Check with the school’s privacy contact that GA4 and the
-   consent text are appropriate before enabling it, especially because students may be minors.
+8. **Optional Google Analytics (GA4):**
+   1. In Google Analytics, create a property and a **Web** data stream for the deployed app. Copy the Measurement ID
+      from the stream; it looks like `G-XXXXXXXXXX`.
+   2. In Cloudflare Workers Builds, add `VITE_GA_MEASUREMENT_ID` with that ID as a **build variable** for the
+      production deployment (and for any preview environment where you want to test). Rebuild and deploy. For local
+      testing, you can instead put `VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX` in `.env.local`; never commit that file.
+      Without a valid ID, analytics stays disabled and users do not see a consent prompt.
+   3. On first use, a small cookie and analytics banner explains the choice and links to the full in-app privacy notice.
+      The banner asks whoever is using that browser on that device before Google’s script can load. If they decline,
+      no analytics script is loaded. The choice is stored on that device, not attached to an account, and can be
+      changed later in **Instellingen → Privacy en gebruiksstatistieken**.
+   4. Before relying on the reports, register the event parameters as custom dimensions in GA4. In the GA4 property,
+      open **Admin → Data display → Custom definitions → Create custom dimension** (the exact menu labels can vary):
+      - Dimension name: `Class`; scope: **Event**; event parameter: `class_slug`.
+      - Dimension name: `User role`; scope: **Event**; event parameter: `user_role`.
+      - Dimension name: `Admin page`; scope: **Event**; event parameter: `admin_page`.
+      Save each dimension. These dimensions apply to events received after creation; they do not fill in past
+      reports. New GA4 custom dimensions can take 24–48 hours to appear in standard reports. You can often inspect
+      recent events sooner in **Reports → Realtime** or **Admin/Reports → DebugView** while testing.
+   5. **See which app pages are used most:** open **Reports → Engagement → Pages and screens**. The app sends one
+      `page_view` when a user opens or switches to an app tab. The synthetic page paths are `/app/rooster`,
+      `/app/info`, `/app/stand`, `/app/pagina`, and `/app/beheer`; the page title is `Aristeia | <tab>`. These are
+      app-internal labels, not actual URLs, so class slugs and other route details are not exposed in the URL.
+      Compare **Views** to see which tabs are most visited.
+   6. **Break page usage down by class or role:** open **Explore → Free form**, add `Page path`, `Class`, and
+      `User role` as dimensions, and add **Views** (or **Event count**) as a metric. Put `Page path` in Rows and
+      `Class` or `User role` in Columns or Filters. Filter `Event name` to `page_view` if the table also includes
+      other events.
+   7. **See which admin sections are used:** in that exploration, filter **Event name** to `admin_page_view` and
+      use `Admin page` and `Class` as dimensions. The admin section values are `activiteiten`, `leerlingen`,
+      `dagberichten`, `info`, `meldingen`, and `klas`. Compare **Event count** to see which sections are opened
+      most often. These are aggregate usage reports; GA does not identify a person by their name.
+   8. **Data sent by this app:** after consent, `page_view` includes `page_title`, synthetic `page_location`,
+      synthetic `page_path`, an empty `page_referrer`, `class_slug`, and `user_role`. `admin_page_view` includes
+      `admin_page`, `class_slug`, and `user_role`. The app does not send names, student IDs, session tokens,
+      roster details, or actual class routes. GA may still process its own technical browser/device data, so this is
+      not anonymous in the strict sense. A class slug may itself identify a class; confirm that sharing it with
+      Google is acceptable, or use non-identifying class codes instead.
+   9. **Privacy approval:** check with the school’s privacy contact that GA4, the consent prompt, and the data
+      sharing are appropriate before enabling this, especially because students may be minors. Do not send names or
+      other directly identifying personal data to Google Analytics.
 
 ## Check that notifications work
 
