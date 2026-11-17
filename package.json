@@ -9,6 +9,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "wrangler preview",
+    "loadtest:generate": "node scripts/generate-load-test-data.mjs",
+    "loadtest": "node scripts/load-test.mjs",
     "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {

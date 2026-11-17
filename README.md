@@ -64,11 +64,17 @@ npx wrangler deploy
 
 For Cloudflare Workers Builds, configure the `VITE_*` values as build variables in the Cloudflare dashboard. See [CONFIGURATION.md](./CONFIGURATION.md) for Supabase initialization, optional services, secrets and deployment details.
 
+## Load testing
+
+The repository includes a student load-test runner for isolated non-production environments. See [LOAD-TESTING.md](./LOAD-TESTING.md) for setup, safety requirements and usage.
+
 ## Documentation
 
 - [ARCHITECTURE.md](./ARCHITECTURE.md) — project structure, runtime architecture, auth model and deployment boundaries
 - [CONFIGURATION.md](./CONFIGURATION.md) — Supabase setup, environment variables, push notifications, analytics and Cloudflare deployment
 - [CONTRIBUTING.md](./CONTRIBUTING.md) — local workflow and contribution expectations
+- [SECURITY.md](./SECURITY.md) — security model, reporting process and handling of sensitive data
+- [LOAD-TESTING.md](./LOAD-TESTING.md) — safely running the student load test
 - [LICENSE](./LICENSE) — MIT License
 
 ## License
