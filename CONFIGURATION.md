@@ -1,135 +1,112 @@
 # Configuration and deployment
 
-This project reads front-end configuration values from Vite environment variables. That keeps deployment-specific values out of the source code and makes it easier to use the repo with different projects or environments.
+This app is a Vite-built browser frontend backed by Supabase and deployed as Cloudflare Worker static assets. Set frontend values at build time; Vite includes every `VITE_*` value used by the app in the browser bundle.
 
-## Important rule
+## Project layout and runtime boundaries
 
-Only put values in `VITE_*` variables when they are meant to be visible in the browser. That includes public Supabase values and a public VAPID key.
+The codebase is deliberately split into a few clear runtime areas:
 
-Never put:
+- `src/` contains the student and class-admin app, the main shell and the class experience.
+- `src/root/` contains the Root organizer experience, which is loaded only when the browser path starts with `/root`.
+- `supabase/schema.sql` defines the database schema, RLS rules and the Postgres functions the browser app calls.
+- `supabase/migratie-v*.sql` contains the ordered migration files that build on the base schema.
+- `supabase/functions/push/index.ts` is the Supabase Edge Function responsible for Web Push reminders and manual notifications.
+- `wrangler.jsonc` configures the Cloudflare Worker that serves the built frontend assets.
 
-- a Supabase service-role key
-- a VAPID private key
-- passwords
-- tokens that should not be exposed to users
-- any secret or private credential into the front-end build
+The database does not rely on direct table access as the normal app path. The schema is designed so the browser calls RPC functions through the Supabase REST API instead of reading and writing tables directly. The Root and student/admin flows also use different authentication patterns, which is why the code keeps separate Root helpers alongside the standard class-session calls.
 
-Those belong in server-side secrets, such as Supabase Edge Function secrets or Cloudflare secrets.
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full project map and the role-by-role data flow.
 
-## Local development
+## Frontend environment variables
 
-### 1. Copy the example file
+Copy the example file for local development:
 
 ```bash
 cp .env.example .env
 ```
 
-### 2. Fill in the values
+Set these values in `.env`:
 
-Edit `.env` and set the values for your local environment.
+| Variable | Required? | Purpose |
+| --- | --- | --- |
+| `VITE_SUPABASE_URL` | Yes | Supabase project URL, such as `https://your-project.supabase.co`. |
+| `VITE_SUPABASE_KEY` | Yes | Supabase publishable key, or the legacy anon key. Both are public client keys. |
+| `VITE_VAPID_PUBLIC_KEY` | Optional | Public VAPID key for browser push subscriptions. Set this when enabling push notifications. |
+| `VITE_WIKI_URL` | Optional | URL linked from the app to its wiki or documentation. |
+| `VITE_GA_MEASUREMENT_ID` | Optional | Google Analytics 4 measurement ID, in the form `G-...`. |
 
-Example:
+The Supabase URL and key are required for app data and sign-in. If they are missing, the app treats itself as unconfigured. Restart `npm run dev` after changing local environment values. For a build, set the values before running `npm run build`.
 
-```dotenv
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_KEY=your_publishable_or_anon_key
-VITE_VAPID_PUBLIC_KEY=your_vapid_public_key
-VITE_WIKI_URL=https://github.com/your-user/your-repo/wiki
-VITE_GA_MEASUREMENT_ID=
-```
+### Public values and secrets
 
-### 3. Restart the dev server after edits
+Everything prefixed with `VITE_` is public. Do not put a Supabase service-role key, passwords, access tokens, the private VAPID key or any other secret in `.env`, Cloudflare build variables or frontend source. The Supabase publishable/anon key is intended for browsers; database access is constrained by the SQL functions, grants and storage policies in this project, not by hiding that key.
 
-If you change any environment variables, restart the Vite dev server so the app picks up the new values.
+Store server-side credentials in Supabase Edge Function secrets or another appropriate secret store. The push function uses `CRON_SECRET`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT` server-side; never expose these to the frontend. The public VAPID key belongs in `VITE_VAPID_PUBLIC_KEY` and also in the Edge Function's `VAPID_PUBLIC_KEY` secret.
 
-```bash
-npm run dev
-```
+## Supabase setup
 
-## Cloudflare Workers Builds
+Use a Supabase project for the environment. For a new database, run the SQL files in the Supabase SQL Editor in this order:
 
-For Cloudflare deployments, set the same variables as build variables in the Cloudflare project or environment settings.
+1. `supabase/schema.sql`
+2. `supabase/migratie-v3.sql`
+3. `supabase/migratie-v4.sql`
+4. `supabase/migratie-v5.sql`
+5. `supabase/migratie-v6.sql`
+6. `supabase/migratie-v7.sql`
 
-Use these keys:
+The migrations build on one another; apply them in order and deploy the matching app code. Do not run `supabase/reset.sql` on a real or populated project: it is a destructive reset script for an older scaffold. `supabase/seed-demo.sql` is optional test data; do not leave demo classes in a live event. See [README.md](./README.md#start-an-event) for the demo login passwords and cleanup command.
 
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_KEY`
-- `VITE_VAPID_PUBLIC_KEY`
-- `VITE_WIKI_URL`
-- `VITE_GA_MEASUREMENT_ID`
+Configure Supabase Auth as follows:
 
-These values are embedded into the browser bundle by Vite, so they are public by design. That is correct for public app settings, but not for secrets.
+- Turn **Allow new users to sign up** off; Root users are created by an organizer, not public sign-up.
+- Turn **Allow anonymous sign-ins** on. The app uses anonymous Auth only to authorize class-admin image uploads; class logins themselves use the app's own database-backed class sessions.
+- Add the Root organizer as a Supabase Auth user (with a strong password). Then run `select public.maak_root('you@example.com');` in the SQL Editor using that user's email. Open `/root` and enable two-factor authentication under **Veiligheid**.
 
-## What each variable is for
+The SQL setup creates the app's tables, functions and storage configuration. Keep the Supabase project URL and client key in the frontend configuration; do not use a service-role key in the app.
 
-### `VITE_SUPABASE_URL`
+## Push notifications (optional)
 
-The base URL of the Supabase project, for example:
+Push needs a matching VAPID key pair and a deployed Supabase Edge Function:
 
-```text
-https://ijkfnntmrkqkoqymbixo.supabase.co
-```
+1. Generate a key pair with `npx web-push generate-vapid-keys` (the `web-push` command may need to be run using an available installation of that tool).
+2. Set the public key as `VITE_VAPID_PUBLIC_KEY` before building the frontend.
+3. Deploy the function with the Supabase CLI: `supabase functions deploy push --no-verify-jwt`. Its name must be exactly `push` in lowercase. The repository's `supabase/config.toml` disables gateway JWT verification because the function performs its own authorization.
+4. In Supabase Edge Function secrets, set `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (for example `mailto:admin@example.com`) and a long random `CRON_SECRET`. The function also uses the Supabase-provided `SUPABASE_URL` and `SUPABASE_DB_URL`.
+5. In `supabase/cron.sql`, replace `JOUW-PROJECT` and `JOUW-CRON-GEHEIM` with the project reference and the same `CRON_SECRET`, then run the file in the SQL Editor. The reminder job runs every minute from 04:00 through 22:59 UTC. The file also schedules automatic cleanup and removal of old cron logs. Automatic deletion 14 days after the event only takes place when this cleanup job is installed and an event end date is set in Root.
 
-### `VITE_SUPABASE_KEY`
+Push delivery is server-side. The browser only needs the public VAPID key to register a subscription. Test delivery from the app's **Meldingen** page. On iPhone, notifications require the installed home-screen app.
 
-The Supabase anon or publishable key used by the front-end. This is a public value in the browser and is used to call public RPC endpoints and the storage APIs that are allowed for the app.
+## Google Analytics (optional)
 
-Do not use a service-role key here.
+Set `VITE_GA_MEASUREMENT_ID` to a valid GA4 measurement ID (`G-...`) to enable the consent prompt. The analytics script loads only after the user opts in; an empty or invalid ID keeps analytics disabled. The app sends page/tab and class-admin-section usage events with a class slug and role, but not student names, IDs, session tokens or roster details. A class slug may still identify a class, and Google may collect technical browser/device data. Get the school's privacy approval before enabling analytics, especially when students are minors. Users can change their choice in **Instellingen → Privacy en gebruiksstatistieken**.
 
-### `VITE_VAPID_PUBLIC_KEY`
+## Cloudflare Workers
 
-The public VAPID key used by the browser to register push subscriptions. This is safe to expose in the front-end.
-
-The private VAPID key must stay in a server-side location, such as Supabase Edge Function secrets.
-
-### `VITE_WIKI_URL`
-
-The URL to the project wiki or docs. This is optional and is only used for links in the app.
-
-### `VITE_GA_MEASUREMENT_ID`
-
-Optional Google Analytics measurement ID. If empty or invalid, analytics stays disabled and no tracking script is loaded.
-
-## Supabase setup notes
-
-This app expects a Supabase project where:
-
-- Auth is configured for the app’s intended login flow
-- the project contains the SQL schema and migrations from this repo
-- public keys and project URLs are supplied through configuration
-- any sensitive push, cron, or admin functionality remains protected by server-side secrets
-
-## Push notifications
-
-Push notifications are optional but recommended for student-facing reminders.
-
-The browser uses the public VAPID key to request a push subscription. The actual push delivery is handled server-side, and the private key should be stored in secret storage, not in the client build.
-
-## Check that the app sees the config
-
-After setting variables, confirm the app loads correctly:
+`wrangler.jsonc` configures the Worker name, the `dist/` static-assets directory and single-page-app fallback. For local builds, run the commands from the repository root:
 
 ```bash
 npm run build
+npx wrangler preview
+npx wrangler deploy
 ```
 
-If the required public Supabase config is missing, the app will behave as unconfigured and parts of the app may not work.
+The build produces `dist/`. Wrangler preview creates a Cloudflare preview deployment; it is not the local Vite preview server. Wrangler deploy publishes the built assets to the configured Worker and does not run the Vite build first. Both Wrangler commands need Cloudflare authentication. The optional `npm run deploy` script runs the build and deploys in one step.
 
-## Security reminder
+For Cloudflare Workers Builds, use these commands:
 
-Frontend environment variables are not a secure secret storage mechanism. Use them only for data that is meant to be public in the browser. Keep all truly secret configuration in a proper secret store.
+- **Build:** `npm run build`
+- **Preview:** `npx wrangler preview`
+- **Deploy:** `npx wrangler deploy`
 
-## Common setup flow
+Configure the frontend `VITE_*` values as build variables for every environment that needs them (production and previews). Those values are compiled into that environment's client bundle. Build before previewing or deploying; the direct Wrangler commands do not run the Vite build. Keep secrets out of build variables.
 
-1. Create or choose your Supabase project.
-2. Copy `.env.example` to `.env`.
-3. Fill in your public config values.
-4. Run the app locally.
-5. Add the same variables as Cloudflare build variables for production or preview builds.
-6. Keep private secrets out of the repo and out of the browser bundle.
+## Keeping a Supabase free project active
 
-## Additional references
+The optional `.github/workflows/keep-alive.yml` workflow calls `start_info` every three days. To use it, add repository secrets named `SUPABASE_URL` and `SUPABASE_KEY` (the project URL and public client key). GitHub may disable scheduled workflows after prolonged repository inactivity, so check the Actions page periodically.
 
-- `README.md` for the project overview and quick start
-- `CONTRIBUTING.md` for contributor expectations and workflow
-- `LICENSE` for legal terms
+## References
+
+- [README.md](./README.md) — project overview and quick start
+- [ARCHITECTURE.md](./ARCHITECTURE.md) — project structure and runtime boundaries
+- [CONTRIBUTING.md](./CONTRIBUTING.md) — contributor workflow
+- [LICENSE](./LICENSE) — MIT License

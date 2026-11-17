@@ -1,69 +1,76 @@
 # Cygnus Aristeia Rooster
 
-A mobile-first PWA for a school event where teams and classes compete in a two-day schedule and ranking system.
+Cygnus Aristeia Rooster is a Dutch-language, mobile-first web app for organizing a two-day school event. It provides class schedules, activities, announcements, standings and optional push notifications. The app is installable as a Progressive Web App (PWA).
 
-## Project overview
+## What it does
 
-This app is designed for a school event where:
+- **Students** sign in through their class link and password, choose their name, and see their schedule, class information, announcements and any standings that have been revealed.
+- **Class administrators** manage their own students, activities, class announcements, messages, notifications and class appearance.
+- **Root organizers** use `/root` to manage classes, the event programme and dates, standings, templates, global announcements and app-wide settings. Root access uses a Supabase Auth account; two-factor authentication can be enabled in the app.
 
-- students log in with a class password and view their own schedule or the whole class schedule
-- class admins manage students, activities, announcements, notifications, branding, and class content
-- root/admin users manage the event setup, classes, dates, rankings, templates, and global messages
-- the app works as an installable PWA and can send push notifications before activities begin
+The application is a React and Vite frontend. Cloudflare Workers serves its built static assets; Supabase provides the Postgres database, Auth, Storage and the push-notification Edge Function.
 
-## Tech stack
+## How the project is organized
 
-- React + Vite
-- PWA support for installable mobile usage
-- Cloudflare Workers for static hosting and deployment
-- Supabase for Postgres, Auth, Storage, and Edge Functions
+This repo combines a browser app, a database schema and deployment configuration:
 
-## Quick start
+- `src/` — main student/admin interface and the app shell
+- `src/root/` — the organizer-only Root interface available at `/root`
+- `src/editor/` — editor components used for class appearance and page-building tools
+- `supabase/schema.sql` — base database schema, RLS setup and the app functions that the frontend calls
+- `supabase/migratie-v*.sql` — ordered database migration files
+- `supabase/functions/push/index.ts` — Web Push Edge Function for reminders and manual notifications
+- `public/` — static assets and icons
+- `wrangler.jsonc` — Cloudflare Worker configuration
 
-### 1. Install dependencies
+For a guided explanation of the runtime architecture, roles, database model and deployment boundaries, see [ARCHITECTURE.md](./ARCHITECTURE.md).
+
+## Start an event
+
+After completing the Supabase setup in [CONFIGURATION.md](./CONFIGURATION.md), open `/root`, create the classes, set the event dates and add the programme. Root can also set up leagues and standings, create reusable schedule templates, publish global information and print class QR codes. Share each class link and its student/admin passwords with that class privately; generated passwords are shown only when created.
+
+For a test run, apply `supabase/seed-demo.sql` after the schema and migrations. It creates `/k/demo` and `/k/demo2`; the student/admin passwords are `leerling-demo` / `beheer-demo` and `leerling-demo2` / `beheer-demo2`, respectively. Remove the demo data before real use by running:
+
+```sql
+delete from public.klassen where slug in ('demo', 'demo2');
+```
+
+## Get started
+
+You need Node.js 22 (the version in `.node-version`), npm and a Supabase project. Follow [CONFIGURATION.md](./CONFIGURATION.md) to create and configure Supabase before expecting the app's data and login features to work.
 
 ```bash
 npm install
-```
-
-### 2. Create your local environment file
-
-Copy the example environment configuration and fill in the values for your own project:
-
-```bash
 cp .env.example .env
 ```
 
-### 3. Fill in your local values
-
-Edit `.env` and set the values for your local or test environment. Use your own Supabase project URL and publishable key, and add a VAPID public key if push notifications are enabled.
-
-### 4. Run the app locally
+Fill in at least `VITE_SUPABASE_URL` and `VITE_SUPABASE_KEY` in `.env`, then start the local Vite development server:
 
 ```bash
 npm run dev
 ```
 
-### 5. Build for production
+## Build, preview and deploy
+
+Set the frontend environment variables before building; Vite embeds them in the generated browser files.
 
 ```bash
 npm run build
+npx wrangler preview
+npx wrangler deploy
 ```
+
+`npm run build` creates the `dist/` assets configured in `wrangler.jsonc`. `npx wrangler preview` creates a Cloudflare preview deployment; it is not the local Vite preview server. `npx wrangler deploy` deploys the current build to the Worker configured by Wrangler. Both Wrangler commands require Cloudflare authentication. The `npm run deploy` convenience script also builds first and then deploys.
+
+For Cloudflare Workers Builds, configure the `VITE_*` values as build variables in the Cloudflare dashboard. See [CONFIGURATION.md](./CONFIGURATION.md) for Supabase initialization, optional services, secrets and deployment details.
 
 ## Documentation
 
-This repository is organized into a few focused docs:
-
-- `CONFIGURATION.md` — environment variables, Cloudflare build variables, Supabase setup, and deployment notes
-- `CONTRIBUTING.md` — contributor workflow, setup, and PR expectations
-- `LICENSE` — MIT licensing terms
-
-## Deployment notes
-
-For deployed environments, do not put private secrets in the frontend build. Use public build variables for values that are intentionally exposed to browsers, and keep private credentials in proper server-side secret stores.
-
-See `CONFIGURATION.md` for the full setup and deployment guidance.
+- [ARCHITECTURE.md](./ARCHITECTURE.md) — project structure, runtime architecture, auth model and deployment boundaries
+- [CONFIGURATION.md](./CONFIGURATION.md) — Supabase setup, environment variables, push notifications, analytics and Cloudflare deployment
+- [CONTRIBUTING.md](./CONTRIBUTING.md) — local workflow and contribution expectations
+- [LICENSE](./LICENSE) — MIT License
 
 ## License
 
-This project is licensed under the MIT License. See `LICENSE` for details.
+This project is distributed under the MIT License. See [LICENSE](./LICENSE).

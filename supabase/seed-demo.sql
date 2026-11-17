@@ -1,4 +1,5 @@
--- Demo data for testing (run AFTER schema.sql and migratie-v3.sql). Remove before real use:  delete from public.klassen where slug in ('demo', 'demo2');
+-- Demo data for testing (run AFTER schema.sql and migrations v3-v7). Remove before real use:
+--   delete from public.klassen where slug in ('demo', 'demo2');
 -- Demo   (/k/demo):   leerling-demo  /  beheer-demo
 -- Demo 2 (/k/demo2):  leerling-demo2 /  beheer-demo2
 update public.instellingen set dag1 = current_date, dag2 = current_date + 1 where id = 1;

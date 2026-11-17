@@ -1,121 +1,64 @@
 # Contributing
 
-Thanks for helping improve Cygnus Aristeia Rooster.
+Thanks for contributing to Cygnus Aristeia Rooster. The repository contains a React/Vite PWA, Supabase database schema and migrations, a Supabase push Edge Function, and Cloudflare Worker deployment configuration.
 
-## Purpose of this repository
+## Repository map
 
-This project is a full-stack school event app built with:
+The project is organized around a few clear responsibilities:
 
-- React for the front-end app
-- Vite for local development and build tooling
-- Cloudflare Workers for deployment of the front-end assets
-- Supabase for database, auth, storage, and edge functions
+- `src/` — the main student and class-admin app UI, session handling, schedule pages and settings
+- `src/root/` — the Root organizer interface, used when browsing to `/root`
+- `src/editor/` — class appearance and page/editor components
+- `supabase/schema.sql` — base database schema, security model and app functions
+- `supabase/migratie-v*.sql` — schema upgrades; preserve order when making database changes
+- `supabase/functions/push/index.ts` — Web Push notifications and reminder scheduling logic
+- `wrangler.jsonc` — Cloudflare Worker deployment config
 
-The repo is meant to be a collaborative, reusable project for event organizers and class admins.
+For the runtime architecture and role model, see [ARCHITECTURE.md](./ARCHITECTURE.md).
 
-## Repository structure
+## Local workflow
 
-This repo is kept fairly simple:
-
-- `README.md` — overview and quick start
-- `CONFIGURATION.md` — environment configuration and deployment
-- `CONTRIBUTING.md` — contributor workflow and expectations
-- `LICENSE` — MIT license
-- `src/` — application code
-- `public/` — static assets and icons
-- `supabase/` — database schema, migrations, and edge function code
-- `.env.example` — template for local environment variables
-
-## Local setup
-
-### 1. Clone or fork the repo
-
-Use your own branch and pull-request flow as usual.
-
-### 2. Install dependencies
+Use Node.js 22 (see `.node-version`) and npm:
 
 ```bash
 npm install
-```
-
-### 3. Copy the environment example file
-
-```bash
 cp .env.example .env
 ```
 
-### 4. Fill in the variables
-
-Add the required values for your local environment, especially your own Supabase project.
-
-### 5. Run the app
+Set the required Supabase URL and public client key in `.env` as described in [CONFIGURATION.md](./CONFIGURATION.md). Start the local app with:
 
 ```bash
 npm run dev
 ```
 
-### 6. Verify the app builds
-
-Before opening a pull request, make sure the app still builds:
+Before submitting a change, run the production build:
 
 ```bash
 npm run build
 ```
 
-## Branch workflow
+There is currently no test or lint script in `package.json`. If a change affects the UI or an integration, also verify that behavior directly in the relevant local or test environment.
 
-Use a feature branch or fix branch for your changes instead of committing directly to `development` unless the repository owner explicitly wants direct updates.
+## Changes and pull requests
 
-Good branch names:
+- Work on a focused branch and target `development` unless the maintainer specifies another branch.
+- Keep changes readable and consistent with existing patterns. UI copy is Dutch; retain the app's language and terminology when editing user-facing text.
+- Explain the problem and behavior change in the pull request. Include steps to verify user-visible changes.
+- Update the relevant documentation when changing setup, environment variables, Supabase schema or migrations, push behavior, or deployment.
+- For database changes, preserve the existing migration sequence and document any required Supabase dashboard or secret changes. Do not edit an already-applied migration to deliver a new change; add a subsequent migration.
 
-- `feature/rooster-fixes`
-- `fix/push-notification-config`
-- `chore/docs-cleanup`
+## Data and credentials
 
-## Coding expectations
+Never commit `.env` files, secrets, real student/class data, or production database exports. In particular, keep Supabase service-role keys, private VAPID keys, cron secrets and passwords out of frontend code and `VITE_*` variables. Only browser-safe public configuration belongs in the Vite build. See [CONFIGURATION.md](./CONFIGURATION.md) for the distinction and setup instructions.
 
-- Keep changes focused and easy to review.
-- Prefer readable, maintainable code and clear naming.
-- Follow the existing Dutch naming patterns if working in UI text or labels that match the project’s current language.
-- Keep environment-specific values out of committed source files.
-- Do not commit secrets, private tokens, or personal data.
+## Before submitting
 
-## Security expectations
-
-Do not commit:
-
-- Supabase service-role keys
-- private VAPID keys
-- API tokens or passwords
-- real event data or user data
-- local `.env` files
-
-Use environment variables only for values that are intended to be public in the browser, and keep secret values in server-side secret stores.
-
-## Pull request checklist
-
-Before opening a PR, make sure:
-
-- the branch is based on the correct target branch
-- the app builds successfully
-- the configuration changes are documented
-- no secrets or personal data are included
-- the change is focused and explained clearly
-
-## Documentation updates
-
-When you change setup, config, or deployment behavior, update the relevant docs in:
-
-- `README.md`
-- `CONFIGURATION.md`
-- `CONTRIBUTING.md`
-
-This helps keep the repo understandable for future contributors and other deployments.
-
-## Questions and collaboration
-
-If you are unsure about a setup step, architecture choice, or environment-related issue, open a discussion or issue before making a large change. It is better to clarify before committing a broad refactor.
+- [ ] The change is focused and its behavior is described.
+- [ ] `npm run build` succeeds.
+- [ ] Relevant setup, configuration and deployment docs are updated.
+- [ ] No secrets or real personal/event data are included.
+- [ ] Any database migration is ordered and safe for the intended upgrade path.
 
 ## License
 
-By contributing, you agree that your changes will be made available under the project’s MIT license as described in `LICENSE`.
+The project is distributed under the MIT License in [LICENSE](./LICENSE). By submitting a contribution, you agree that it may be distributed under that license.
