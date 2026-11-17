@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { WIKI_URL } from './config.js'
 import Modal from './Modal.jsx'
 import { rpc } from './api.js'
@@ -11,6 +11,7 @@ import BeheerInfo from './BeheerInfo.jsx'
 import BeheerPush from './BeheerPush.jsx'
 import BeheerSjablonen from './BeheerSjablonen.jsx'
 import BeheerKlas from './BeheerKlas.jsx'
+import { stuurBeheerPagina, useAnalyticsToestemming } from './analytics.js'
 
 const WIKI = (
   <a href={WIKI_URL} target="_blank" rel="noopener noreferrer">
@@ -46,7 +47,11 @@ function BeheerWelkom() {
 
 export default function Beheer({ sessie }) {
   const [deel, setDeel] = useState('activiteiten')
+  const analyticsToestemming = useAnalyticsToestemming()
   const { ververs } = useData()
+  useEffect(() => {
+    if (analyticsToestemming === 'granted') stuurBeheerPagina(sessie.klas?.slug, deel)
+  }, [analyticsToestemming, deel, sessie.klas?.slug])
   const delen = [
     ['activiteiten', nl.activiteiten],
     ['leerlingen', nl.leerlingen],

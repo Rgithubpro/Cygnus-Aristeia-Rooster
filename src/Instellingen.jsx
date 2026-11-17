@@ -9,6 +9,7 @@ import { isStandalone } from './Welkom.jsx'
 import { nuAmsterdam } from './util.js'
 import { Schakel, Seg, Sectie } from './editor/bouwstenen.jsx'
 import Modal from './Modal.jsx'
+import { AnalyticsBeheer } from './AnalyticsConsent.jsx'
 
 const Rij = ({ k, v }) => (
   <div className="info-rij">
@@ -123,6 +124,8 @@ export default function Instellingen({ sessie, leerlingId, onSluit, onMeldingen,
         </div>
         {bericht && <p className="ok" role="status">{bericht}</p>}
       </Sectie>
+
+      <AnalyticsBeheer />
 
       {groepen.map(([titel, rijen]) => (
         <Sectie key={titel} titel={titel}>
