@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for contributing to Cygnus Aristeia Rooster. The repository contains a React/Vite PWA, Supabase database schema and migrations, a Supabase push Edge Function, and Cloudflare Worker deployment configuration.
+Thanks for contributing to Aristeia. The repository contains a React/Vite PWA, Supabase database schema and migrations, a Supabase push Edge Function, and Cloudflare Worker deployment configuration.
 
 ## Repository map
 
@@ -62,3 +62,8 @@ Never commit `.env` files, secrets, real student/class data, or production datab
 ## License
 
 The project is distributed under the MIT License in [LICENSE](./LICENSE). By submitting a contribution, you agree that it may be distributed under that license.
+
+
+## Texts
+
+Add user-visible text with `txt('...')` and run `npm run teksten:sync` so it appears in `src/teksten.js`. Run `npm run teksten:check` before committing. Never hard-code text in a component.

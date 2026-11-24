@@ -1,9 +1,10 @@
 import { ZWAAN } from './marks.js'
+import { txt } from './t.js'
 
 // Cygnus the swan: real star positions, swan silhouette behind them. Uses the class accent colour.
 export default function Mark({ size = 56, className = '' }) {
   return (
-    <svg className={`mark ${className}`} width={size} height={size} viewBox="0 0 100 100" role="img" aria-label="Sterrenbeeld Zwaan">
+    <svg className={`mark ${className}`} width={size} height={size} viewBox="0 0 100 100" role="img" aria-label={txt('Sterrenbeeld Zwaan')}>
       <g fill="currentColor" fillOpacity="0.22" stroke="currentColor" strokeOpacity="0.55" strokeWidth="0.6">
         {ZWAAN.vormen.map((d, i) => (
           <path key={i} d={d} />

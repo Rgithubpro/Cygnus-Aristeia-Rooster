@@ -45,20 +45,11 @@ Store server-side credentials in Supabase Edge Function secrets or another appro
 
 ## Supabase setup
 
-Use a Supabase project for the environment. For a new database, run the SQL files in the Supabase SQL Editor in this order:
-
-1. `supabase/schema.sql`
-2. `supabase/migratie-v3.sql`
-3. `supabase/migratie-v4.sql`
-4. `supabase/migratie-v5.sql`
-5. `supabase/migratie-v6.sql`
-6. `supabase/migratie-v7.sql`
-
-The migrations build on one another; apply them in order and deploy the matching app code. Do not run `supabase/reset.sql` on a real or populated project: it is a destructive reset script for an older scaffold. `supabase/seed-demo.sql` is optional test data; do not leave demo classes in a live event. See [README.md](./README.md#start-an-event) for the demo login passwords and cleanup command.
+Use a Supabase project for the environment. For a **new** project, run `supabase/setup.sql` once in the Supabase SQL Editor. It contains the complete database setup (it is `schema.sql` and `migratie-v3.sql` to `migratie-v7.sql` in order). For an **existing** project, only run the `migratie-vN.sql` files you have not run yet, in order, and deploy the matching app code. Do not run `supabase/reset.sql` on a real or populated project: it is a destructive reset script for an older scaffold. `supabase/seed-demo.sql` is optional test data (run it after `setup.sql`); do not leave demo classes in a live event. See [README.md](./README.md#start-an-event) for the demo login passwords and cleanup command.
 
 Configure Supabase Auth as follows:
 
-- Turn **Allow new users to sign up** off; Root users are created by an organizer, not public sign-up.
+- Leave **Allow new users to sign up** **on**, and keep **Confirm email** on under the Email provider. Anonymous sign-ins count as sign-ups: with sign-ups off, class admins cannot upload pictures (the auth log shows `signup_disabled`). This is safe because a new account can do nothing by itself: every table is locked, Root needs an entry made by `maak_root`, and uploads need an admin class session.
 - Turn **Allow anonymous sign-ins** on. The app uses anonymous Auth only to authorize class-admin image uploads; class logins themselves use the app's own database-backed class sessions.
 - Add the Root organizer as a Supabase Auth user (with a strong password). Then run `select public.maak_root('you@example.com');` in the SQL Editor using that user's email. Open `/root` and enable two-factor authentication under **Veiligheid**.
 
@@ -86,7 +77,7 @@ Set `VITE_GA_MEASUREMENT_ID` to a valid GA4 measurement ID (`G-...`) to enable t
 
 ```bash
 npm run build
-npx wrangler preview
+npx wrangler versions upload
 npx wrangler deploy
 ```
 
@@ -95,7 +86,7 @@ The build produces `dist/`. Wrangler preview creates a Cloudflare preview deploy
 For Cloudflare Workers Builds, use these commands:
 
 - **Build:** `npm run build`
-- **Preview:** `npx wrangler preview`
+- **Preview:** `npx wrangler versions upload`
 - **Deploy:** `npx wrangler deploy`
 
 Configure the frontend `VITE_*` values as build variables for every environment that needs them (production and previews). Those values are compiled into that environment's client bundle. Build before previewing or deploying; the direct Wrangler commands do not run the Vite build. Keep secrets out of build variables.
@@ -110,3 +101,13 @@ The optional `.github/workflows/keep-alive.yml` workflow calls `start_info` ever
 - [ARCHITECTURE.md](./ARCHITECTURE.md) — project structure and runtime boundaries
 - [CONTRIBUTING.md](./CONTRIBUTING.md) — contributor workflow
 - [LICENSE](./LICENSE) — MIT License
+
+
+## Texts, name and branding
+
+- **All texts** shown in the app are in `src/teksten.js`. Edit the text on the right of each line. `APP_NAAM` at the top is the app name (also used for the page title and the installed app name). After adding a new text in the code, run `npm run teksten:sync`; `npm run teksten:check` verifies the file is complete.
+- **Notification texts** are in the `TEKSTEN` block at the top of `supabase/functions/push/index.ts` (that function is deployed separately).
+- **Logo and icons**: replace `public/favicon.svg`, `public/apple-touch-icon.png` and `public/icons/*`. The header mark is `src/Mark.jsx` with its data in `src/marks.js`. Each class can still set its own logo and app icon in the app.
+- **Default colours** are the CSS variables at the top of `src/styles.css`.
+- **Hosting names**: change `name` in `wrangler.jsonc` and `package.json` when you copy the project.
+- **Wiki link**: set `VITE_WIKI_URL` to show the help link for class admins; leave it empty to hide it.

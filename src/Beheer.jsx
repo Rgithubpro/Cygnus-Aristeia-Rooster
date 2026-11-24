@@ -3,7 +3,6 @@ import { WIKI_URL } from './config.js'
 import Modal from './Modal.jsx'
 import { rpc } from './api.js'
 import { useData } from './data.jsx'
-import { nl } from './strings.js'
 import { dagDatum, dagLabel } from './util.js'
 import ActiviteitForm, { LEEG } from './ActiviteitForm.jsx'
 import BeheerLeerlingen from './BeheerLeerlingen.jsx'
@@ -12,10 +11,11 @@ import BeheerPush from './BeheerPush.jsx'
 import BeheerSjablonen from './BeheerSjablonen.jsx'
 import BeheerKlas from './BeheerKlas.jsx'
 import { stuurBeheerPagina, useAnalyticsToestemming } from './analytics.js'
+import { txt } from './t.js'
 
 const WIKI = (
   <a href={WIKI_URL} target="_blank" rel="noopener noreferrer">
-    de wiki
+    {txt('de wiki')}
   </a>
 )
 
@@ -37,10 +37,10 @@ function BeheerWelkom() {
     setOpen(false)
   }
   return (
-    <Modal titel="👋 Welkom, beheerder!" onSluit={sluit}>
-      <p>Hier regel je alles voor je klas: de activiteiten en wie meedoet, je leerlingen, berichten, en het uiterlijk van de hele app (kleuren, logo, app-icoon, een eigen klaspagina en meer).</p>
-      <p>Begin met de uitleg en tips op {WIKI}.</p>
-      <a className="btn" href={WIKI_URL} target="_blank" rel="noopener noreferrer">📖 Open de wiki</a>
+    <Modal titel={txt('👋 Welkom, beheerder!')} onSluit={sluit}>
+      <p>{txt('Hier regel je alles voor je klas: de activiteiten en wie meedoet, je leerlingen, berichten, en het uiterlijk van de hele app (kleuren, logo, app-icoon, een eigen klaspagina en meer).')}</p>
+      {WIKI_URL && <p>{txt('Begin met de uitleg en tips op')} {WIKI}.</p>}
+      {WIKI_URL && <a className="btn" href={WIKI_URL} target="_blank" rel="noopener noreferrer">{txt('📖 Open de wiki')}</a>}
     </Modal>
   )
 }
@@ -53,17 +53,17 @@ export default function Beheer({ sessie }) {
     if (analyticsToestemming === 'granted') stuurBeheerPagina(sessie.klas?.slug, deel)
   }, [analyticsToestemming, deel, sessie.klas?.slug])
   const delen = [
-    ['activiteiten', nl.activiteiten],
-    ['leerlingen', nl.leerlingen],
-    ['dagberichten', nl.dagberichten],
-    ['info', nl.info],
-    ['meldingen', nl.meldingen],
-    ['klas', nl.uiterlijk],
+    ['activiteiten', txt('Activiteiten')],
+    ['leerlingen', txt('Leerlingen')],
+    ['dagberichten', txt('Dagberichten')],
+    ['info', txt('Info')],
+    ['meldingen', txt('Meldingen')],
+    ['klas', txt('Uiterlijk')],
   ]
   return (
     <div className="stack">
       <BeheerWelkom />
-      <p className="hulp">📖 Nieuw als beheerder? Lees {WIKI} voor uitleg en hulp om te beginnen.</p>
+      {WIKI_URL && <p className="hulp">{txt('📖 Nieuw als beheerder? Lees')} {WIKI} {txt('voor uitleg en hulp om te beginnen.')}</p>}
       <div className="segment" role="tablist">
         {delen.map(([id, label]) => (
           <button key={id} role="tab" aria-selected={deel === id} onClick={() => setDeel(id)}>
@@ -78,7 +78,7 @@ export default function Beheer({ sessie }) {
       {deel === 'meldingen' && <BeheerPush sessie={sessie} />}
       {deel === 'klas' && <BeheerKlas sessie={sessie} />}
       <button className="btn ghost klein" onClick={ververs}>
-        ↻ {nl.verversen}
+        ↻ {txt('Vernieuwen')}
       </button>
     </div>
   )
@@ -119,7 +119,7 @@ function Activiteiten({ sessie }) {
   }
 
   async function verwijder(a) {
-    if (!window.confirm(nl.zekerActiviteit)) return
+    if (!window.confirm(txt('Deze activiteit verwijderen?'))) return
     await rpc('activiteit_verwijderen', { p_token: sessie.token, p_id: a.id })
     ververs()
   }
@@ -131,9 +131,9 @@ function Activiteiten({ sessie }) {
     <div className="stack">
       <BeheerSjablonen sessie={sessie} />
       <button className="btn" onClick={() => setBewerk({ ...LEEG })}>
-        {nl.nieuweActiviteit}
+        {txt('Nieuwe activiteit')}
       </button>
-      {eigen.length === 0 && <p className="note">{nl.geenActiviteitenBeheer}</p>}
+      {eigen.length === 0 && <p className="note">{txt('Nog geen activiteiten. Voeg de eerste toe.')}</p>}
       <ul className="stack lijst-los">
         {eigen.map((a) => (
           <li key={a.id} className="card stack klein-gap">
@@ -143,17 +143,17 @@ function Activiteiten({ sessie }) {
               {a.locatie ? `, ${a.locatie}` : ''}
             </span>
             <span className="meta">
-              {a.leerlingen.length} {nl.deelnemersAantal}
+              {a.leerlingen.length} {txt('deelnemers')}
             </span>
             <div className="rij">
               <button className="btn ghost klein" onClick={() => setBewerk(a)}>
-                {nl.bewerken}
+                {txt('Bewerken')}
               </button>
               <button className="btn ghost klein" onClick={() => setBewerk({ ...a, id: null, titel: `${a.titel} (kopie)` })}>
-                {nl.dupliceren}
+                {txt('Dupliceren')}
               </button>
               <button className="btn danger klein" onClick={() => verwijder(a)}>
-                {nl.verwijderen}
+                {txt('Verwijderen')}
               </button>
             </div>
           </li>
@@ -161,7 +161,7 @@ function Activiteiten({ sessie }) {
       </ul>
       {globaal.length > 0 && (
         <>
-          <h3>{nl.voorIedereen}</h3>
+          <h3>{txt('Voor iedereen')}</h3>
           <ul className="keuzelijst">
             {globaal.map((a) => (
               <li key={a.id}>
@@ -190,13 +190,13 @@ function Dagberichten({ sessie }) {
       await ververs()
       setOk(d)
     } catch {
-      setFout(nl.laadFout)
+      setFout(txt('Er ging iets mis. Controleer je verbinding en probeer het opnieuw.'))
     }
   }
 
   return (
     <div className="stack">
-      <p className="note">{nl.dagberichtUitleg}</p>
+      <p className="note">{txt('Een korte tekst bovenaan de dag, bijvoorbeeld "08:30 aanwezig zijn".')}</p>
       {[1, 2].map((d) => (
         <div key={d} className="card stack">
           <label className="veld">
@@ -204,9 +204,9 @@ function Dagberichten({ sessie }) {
             <input value={waarden[d]} maxLength={200} onChange={(e) => setWaarden({ ...waarden, [d]: e.target.value })} />
           </label>
           <button className="btn" onClick={() => bewaar(d)}>
-            {nl.opslaan}
+            {txt('Opslaan')}
           </button>
-          {ok === d && <p className="ok">✓ {nl.opgeslagen}</p>}
+          {ok === d && <p className="ok">✓ {txt('Opgeslagen')}</p>}
         </div>
       ))}
       {fout && <p className="fout">{fout}</p>}

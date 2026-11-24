@@ -1,5 +1,6 @@
 import { SUPABASE_URL, SUPABASE_KEY } from '../config.js'
 import { verkleind } from '../afbeelding.js'
+import { txt } from '../t.js'
 
 // The Supabase library is only loaded for Root (dynamic import), so students never download it.
 let belofte
@@ -38,7 +39,7 @@ export async function rootToken() {
 // Shrinks the picture (default max 1600px), uploads it (Root only, enforced by the storage policy), returns the path.
 // `map` puts it in a folder, for example a class id for a class logo.
 export async function uploadAfbeelding(bestand, map = '', maxPx = 1600) {
-  if (!bestand.type.startsWith('image/')) throw new Error('Dit is geen afbeelding.')
+  if (!bestand.type.startsWith('image/')) throw new Error(txt('Dit is geen afbeelding.'))
   const blob = await verkleind(bestand, maxPx)
   const naam = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}.jpg`
   const pad = map ? `${map}/${naam}` : naam

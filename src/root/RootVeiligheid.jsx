@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { rootClient } from './client.js'
+import { txt } from '../t.js'
 
 // Two-step verification (authenticator app) for the Root login.
 export default function RootVeiligheid({ onUitloggen }) {
@@ -21,7 +22,7 @@ export default function RootVeiligheid({ onUitloggen }) {
     setFout('')
     const c = await rootClient()
     const { data, error } = await c.auth.mfa.enroll({ factorType: 'totp', friendlyName: `Root ${Date.now()}` })
-    if (error) return setFout('Starten mislukt.')
+    if (error) return setFout(txt('Starten mislukt.'))
     setAanmelden({ id: data.id, qr: data.totp.qr_code, geheim: data.totp.secret })
   }
 
@@ -30,17 +31,17 @@ export default function RootVeiligheid({ onUitloggen }) {
     setFout('')
     const c = await rootClient()
     const { error } = await c.auth.mfa.challengeAndVerify({ factorId: aanmelden.id, code: code.trim() })
-    if (error) return setFout('Deze code klopt niet.')
+    if (error) return setFout(txt('Deze code klopt niet.'))
     setAanmelden(null)
     setCode('')
     laad()
   }
 
   async function verwijder(id) {
-    if (!window.confirm('2FA uitzetten? Dit maakt je Root-login minder veilig.')) return
+    if (!window.confirm(txt('2FA uitzetten? Dit maakt je Root-login minder veilig.'))) return
     const c = await rootClient()
     const { error } = await c.auth.mfa.unenroll({ factorId: id })
-    if (error) return setFout('Verwijderen mislukt. Log opnieuw in met je 2FA-code en probeer het nog eens.')
+    if (error) return setFout(txt('Verwijderen mislukt. Log opnieuw in met je 2FA-code en probeer het nog eens.'))
     laad()
   }
 
@@ -49,30 +50,30 @@ export default function RootVeiligheid({ onUitloggen }) {
   return (
     <div className="stack">
       <div className="card stack">
-        <h2>Tweestapsverificatie (aanbevolen)</h2>
+        <h2>{txt('Tweestapsverificatie (aanbevolen)')}</h2>
         {factoren && actief.length > 0 ? (
           <>
-            <p className="ok">✓ 2FA staat aan. Zonder code kan niemand Root-functies gebruiken, ook niet met jouw wachtwoord.</p>
+            <p className="ok">{txt('✓ 2FA staat aan. Zonder code kan niemand Root-functies gebruiken, ook niet met jouw wachtwoord.')}</p>
             {actief.map((f) => (
-              <button key={f.id} className="btn danger klein" onClick={() => verwijder(f.id)}>2FA uitzetten</button>
+              <button key={f.id} className="btn danger klein" onClick={() => verwijder(f.id)}>{txt('2FA uitzetten')}</button>
             ))}
           </>
         ) : aanmelden ? (
           <form className="stack" onSubmit={bevestig}>
-            <p>Scan de QR-code met een authenticator-app (bijvoorbeeld Google Authenticator of Microsoft Authenticator) en vul de code in.</p>
-            <img className="qr-groot" src={aanmelden.qr} alt="QR-code voor 2FA" />
-            <p className="note">Lukt scannen niet? Voer dit in: <code>{aanmelden.geheim}</code></p>
-            <input value={code} onChange={(e) => setCode(e.target.value)} inputMode="numeric" maxLength={6} placeholder="6-cijferige code" required />
-            <button className="btn">Activeren</button>
+            <p>{txt('Scan de QR-code met een authenticator-app (bijvoorbeeld Google Authenticator of Microsoft Authenticator) en vul de code in.')}</p>
+            <img className="qr-groot" src={aanmelden.qr} alt={txt('QR-code voor 2FA')} />
+            <p className="note">{txt('Lukt scannen niet? Voer dit in:')} <code>{aanmelden.geheim}</code></p>
+            <input value={code} onChange={(e) => setCode(e.target.value)} inputMode="numeric" maxLength={6} placeholder={txt('6-cijferige code')} required />
+            <button className="btn">{txt('Activeren')}</button>
           </form>
         ) : (
-          <button className="btn" onClick={start}>2FA instellen</button>
+          <button className="btn" onClick={start}>{txt('2FA instellen')}</button>
         )}
         {fout && <p className="fout">{fout}</p>}
       </div>
       <div className="card stack">
-        <h2>Sessie</h2>
-        <button className="btn ghost" onClick={onUitloggen}>Uitloggen</button>
+        <h2>{txt('Sessie')}</h2>
+        <button className="btn ghost" onClick={onUitloggen}>{txt('Uitloggen')}</button>
       </div>
     </div>
   )

@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { rpc } from './api.js'
 import { useData } from './data.jsx'
-import { nl } from './strings.js'
+import { txt } from './t.js'
 
 const MEDAILLE = { 1: '🥇', 2: '🥈', 3: '🥉' }
 
 function Rijen({ klassen, toonPunten }) {
-  if (klassen.length === 0) return <p className="note">{nl.geenKlassenLeague}</p>
+  if (klassen.length === 0) return <p className="note">{txt('Nog geen uitslag.')}</p>
   return (
     <ol className="stand">
       {klassen.map((r, i) => (
@@ -15,11 +15,11 @@ function Rijen({ klassen, toonPunten }) {
           <span className="grow">
             {r.emoji ? `${r.emoji} ` : ''}
             {r.klas}
-            {r.eigen ? ` (${nl.jouwKlas})` : ''}
+            {r.eigen ? ` (${txt('jouw klas')})` : ''}
           </span>
           {toonPunten && r.punten !== null && (
             <strong>
-              {r.punten} {nl.punten}
+              {r.punten} {txt('punten')}
             </strong>
           )}
         </li>
@@ -49,8 +49,8 @@ export default function Stand({ sessie }) {
     }
   }, [sessie.token, zichtbaarTot])
 
-  if (!stand) return <p className="note">{fout ? nl.laadFout : nl.laden}</p>
-  if (stand.tot_dag === 0) return <p className="note">{nl.standLeeg}</p>
+  if (!stand) return <p className="note">{fout ? txt('Er ging iets mis. Controleer je verbinding en probeer het opnieuw.') : txt('Laden…')}</p>
+  if (stand.tot_dag === 0) return <p className="note">{txt('De stand wordt aan het einde van de dag bekendgemaakt.')}</p>
 
   const eigenEerst = [...stand.leagues].sort((a, b) => Number(b.eigen) - Number(a.eigen))
   const top = false
@@ -61,7 +61,7 @@ export default function Stand({ sessie }) {
         const kop = (
           <>
             {lg.emoji ? `${lg.emoji} ` : '🏆 '}
-            {lg.naam} {lg.eigen && <span className="tag">{nl.jouwLeague}</span>}
+            {lg.naam} {lg.eigen && <span className="tag">{txt('jouw league')}</span>}
           </>
         )
         const inhoud = (
@@ -69,11 +69,11 @@ export default function Stand({ sessie }) {
             <Rijen klassen={lg.klassen} toonPunten={stand.toon_punten} />
             {lg.eigen && !top && stand.onderdelen.length > 0 && (
               <div className="stack">
-                <h3>{nl.uitslagen}</h3>
+                <h3>{txt('Uitslagen per onderdeel')}</h3>
                 {stand.onderdelen.map((o) => (
                   <details key={`${o.dag}-${o.onderdeel}`} className="card">
                     <summary>
-                      {nl.dag} {o.dag}: {o.onderdeel}
+                      {txt('Dag')} {o.dag}: {o.onderdeel}
                     </summary>
                     <ol className="stand klein">
                       {o.resultaten.map((r, j) => (

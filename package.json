@@ -8,9 +8,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "wrangler preview",
-    "loadtest:generate": "node scripts/generate-load-test-data.mjs",
-    "loadtest": "node scripts/load-test.mjs",
+    "preview": "vite preview",
+    "teksten:check": "node scripts/teksten.mjs check",
+    "teksten:sync": "node scripts/teksten.mjs sync",
     "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {

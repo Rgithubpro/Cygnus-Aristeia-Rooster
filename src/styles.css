@@ -417,3 +417,14 @@ input[type='checkbox']:checked { animation: vink-pop 0.25s ease; }
 }
 .sjabloon { padding-top: 0.6rem; border-top: 1px solid var(--line); }
 .sjablonen > summary { cursor: pointer; }
+
+/* ---------- example rooster picker, checkbox focus ---------- */
+.sj-lijst { list-style: none; display: grid; gap: 0.45rem; }
+.sj-item { display: flex; align-items: center; gap: 0.8rem; padding: 0.65rem 0.85rem; background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-m, 0.7rem); cursor: pointer; transition: border-color 0.2s ease, background-color 0.2s ease; }
+.sj-item:has(input:checked) { border-color: var(--accent); }
+.sj-item.gebruikt { opacity: 0.6; cursor: default; }
+.sj-tekst { display: grid; flex: 1; min-width: 0; }
+.sj-acties { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.sj-acties .btn { flex: 1 1 12rem; }
+input[type='checkbox']:focus, input[type='range']:focus, input[type='color']:focus { box-shadow: none; }
+input[type='checkbox']:focus-visible, input[type='range']:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

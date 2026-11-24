@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { rpc } from './api.js'
 import { useData } from './data.jsx'
-import { nl } from './strings.js'
+import { txt } from './t.js'
 
 export default function KiesNaam({ sessie, onKlaar, onAnnuleer }) {
   const { data, ververs } = useData()
@@ -16,7 +16,7 @@ export default function KiesNaam({ sessie, onKlaar, onAnnuleer }) {
       await ververs()
       onKlaar({ ...sessie, leerlingId: gekozen.id })
     } catch {
-      setFout(nl.laadFout)
+      setFout(txt('Er ging iets mis. Controleer je verbinding en probeer het opnieuw.'))
     }
   }
 
@@ -24,14 +24,14 @@ export default function KiesNaam({ sessie, onKlaar, onAnnuleer }) {
     return (
       <div className="card stack">
         <h2>
-          {nl.benJij} {gekozen.naam}?
+          {txt('Ben jij')} {gekozen.naam}?
         </h2>
         {fout && <p className="fout">{fout}</p>}
         <button className="btn" onClick={bevestig}>
-          {nl.jaDatBenIk}
+          {txt('Ja, dat ben ik')}
         </button>
         <button className="btn ghost" onClick={() => setGekozen(null)}>
-          {nl.nee}
+          {txt('Nee')}
         </button>
       </div>
     )
@@ -42,11 +42,11 @@ export default function KiesNaam({ sessie, onKlaar, onAnnuleer }) {
 
   return (
     <div className="card stack">
-      <h2>{nl.wieBenJij}</h2>
-      <p className="note">{nl.naamWaarschuwing}</p>
-      <input type="search" placeholder={nl.zoekNaam} value={zoek} onChange={(e) => setZoek(e.target.value)} aria-label={nl.zoekNaam} />
-      {!leerlingen && <p className="note">{nl.laden}</p>}
-      {leerlingen && leerlingen.length === 0 && <p className="note">{nl.geenLeerlingen}</p>}
+      <h2>{txt('Wie ben jij?')}</h2>
+      <p className="note">{txt('Let op: je naam wordt op dit apparaat bewaard en gekoppeld aan je meldingen. Kies goed.')}</p>
+      <input type="search" placeholder={txt('Zoek je naam')} value={zoek} onChange={(e) => setZoek(e.target.value)} aria-label={txt('Zoek je naam')} />
+      {!leerlingen && <p className="note">{txt('Laden…')}</p>}
+      {leerlingen && leerlingen.length === 0 && <p className="note">{txt('Er staan nog geen leerlingen in deze klas.')}</p>}
       <ul className="keuzelijst">
         {lijst.map((l) => (
           <li key={l.id}>
@@ -58,12 +58,12 @@ export default function KiesNaam({ sessie, onKlaar, onAnnuleer }) {
       </ul>
       {sessie.rol === 'beheer' && !onAnnuleer && (
         <button className="btn ghost" onClick={() => onKlaar({ ...sessie, naamOvergeslagen: true })}>
-          {nl.overslaan}
+          {txt('Ik ben geen leerling, overslaan')}
         </button>
       )}
       {onAnnuleer && (
         <button className="btn ghost" onClick={onAnnuleer}>
-          {nl.annuleren}
+          {txt('Annuleren')}
         </button>
       )}
     </div>

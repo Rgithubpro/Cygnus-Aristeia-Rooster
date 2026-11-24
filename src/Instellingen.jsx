@@ -10,6 +10,7 @@ import { nuAmsterdam } from './util.js'
 import { Schakel, Seg, Sectie } from './editor/bouwstenen.jsx'
 import Modal from './Modal.jsx'
 import { AnalyticsBeheer } from './AnalyticsConsent.jsx'
+import { txt } from './t.js'
 
 const Rij = ({ k, v }) => (
   <div className="info-rij">
@@ -33,15 +34,15 @@ export default function Instellingen({ sessie, leerlingId, onSluit, onMeldingen,
       const i = {}
       try {
         const reg = await navigator.serviceWorker?.getRegistration()
-        i.sw = reg ? `${reg.active ? 'actief' : reg.installing ? 'installeert' : 'onbekend'}${reg.waiting ? ' (update wacht)' : ''}` : 'geen'
+        i.sw = reg ? `${reg.active ? 'actief' : reg.installing ? 'installeert' : 'onbekend'}${reg.waiting ? txt(' (update wacht)') : ''}` : 'geen'
         i.bestuurd = !!navigator.serviceWorker?.controller
       } catch { /* not supported */ }
       try {
-        i.caches = await Promise.all((await caches.keys()).map(async (n) => `${n}: ${(await (await caches.open(n)).keys()).length} bestanden`))
+        i.caches = await Promise.all((await caches.keys()).map(async (n) => txt('{n}: {length} bestanden', { n: n, length: (await (await caches.open(n)).keys()).length })))
       } catch { /* not supported */ }
       try {
         const e = await navigator.storage.estimate()
-        i.opslag = `${(e.usage / 1048576).toFixed(1)} MB gebruikt van ${(e.quota / 1048576).toFixed(0)} MB`
+        i.opslag = txt('{x1} MB gebruikt van {x2} MB', { x1: (e.usage / 1048576).toFixed(1), x2: (e.quota / 1048576).toFixed(0) })
       } catch { /* not supported */ }
       setSys(i)
       setMeld(await meldingenStatus(sessie.token, leerlingId).catch(() => null))
@@ -53,44 +54,44 @@ export default function Instellingen({ sessie, leerlingId, onSluit, onMeldingen,
   const naam = data.leerlingen.find((l) => l.id === leerlingId)?.naam
   const verbinding = navigator.connection ? `${navigator.connection.effectiveType || '?'}${navigator.connection.saveData ? ' (databesparing)' : ''}` : 'onbekend'
   const groepen = [
-    ['App', [
-      ['Versie', v.lokaal || 'ontwikkelversie'],
-      ['Nieuwere versie beschikbaar', v.wacht ? `ja (${v.achterstand}x gecontroleerd)` : 'nee'],
-      ['Gegevensversie (server)', data.versie],
-      ['Laatst bijgewerkt', laatst ? laatst.toLocaleTimeString('nl-NL') : 'nog niet'],
-      ['Verversfout', fout ? fout.message : 'geen'],
-      ['Online', navigator.onLine ? 'ja' : 'nee'],
-      ['Verbinding', verbinding],
-      ['Geïnstalleerd als app', isStandalone() ? 'ja' : 'nee'],
-      ['Service worker', `${sys.sw ?? '…'}${sys.bestuurd ? ', bestuurt deze pagina' : ''}`],
-      ['Opslag', sys.opslag ?? '…'],
+    [txt('App'), [
+      [txt('Versie'), v.lokaal || 'ontwikkelversie'],
+      [txt('Nieuwere versie beschikbaar'), v.wacht ? txt('ja ({achterstand}x gecontroleerd)', { achterstand: v.achterstand }) : 'nee'],
+      [txt('Gegevensversie (server)'), data.versie],
+      [txt('Laatst bijgewerkt'), laatst ? laatst.toLocaleTimeString('nl-NL') : txt('nog niet')],
+      [txt('Verversfout'), fout ? fout.message : 'geen'],
+      [txt('Online'), navigator.onLine ? 'ja' : 'nee'],
+      [txt('Verbinding'), verbinding],
+      [txt('Geïnstalleerd als app'), isStandalone() ? 'ja' : 'nee'],
+      [txt('Service worker'), `${sys.sw ?? '…'}${sys.bestuurd ? txt(', bestuurt deze pagina') : ''}`],
+      [txt('Opslag'), sys.opslag ?? '…'],
       ...(sys.caches || []).map((c, i) => [`Cache ${i + 1}`, c]),
     ]],
-    ['Account', [
-      ['Klas', data.klas.naam],
-      ['Bijnaam', data.klas.weergavenaam || '-'],
-      ['Rol', sessie.rol],
-      ['Jij bent', naam || 'niemand gekozen'],
-      ['Sessie (laatste tekens)', `…${sessie.token.slice(-6)}`],
+    [txt('Account'), [
+      [txt('Klas'), data.klas.naam],
+      [txt('Bijnaam'), data.klas.weergavenaam || '-'],
+      [txt('Rol'), sessie.rol],
+      [txt('Jij bent'), naam || txt('niemand gekozen')],
+      [txt('Sessie (laatste tekens)'), `…${sessie.token.slice(-6)}`],
       ['Dag 1 / Dag 2', `${data.instellingen.dag1 || '-'} / ${data.instellingen.dag2 || '-'}`],
       ['Stand zichtbaar t/m dag', data.instellingen.uitslag_tot_dag],
     ]],
-    ['Meldingen', [
-      ['Ondersteund', pushOndersteund() ? 'ja' : 'nee'],
-      ['Toestemming', 'Notification' in window ? Notification.permission : 'niet beschikbaar'],
-      ['Aan voor dit apparaat', meld ? (meld.aan ? 'ja' : 'nee') : '…'],
+    [txt('Meldingen'), [
+      [txt('Ondersteund'), pushOndersteund() ? 'ja' : 'nee'],
+      [txt('Toestemming'), 'Notification' in window ? Notification.permission : txt('niet beschikbaar')],
+      [txt('Aan voor dit apparaat'), meld ? (meld.aan ? 'ja' : 'nee') : '…'],
     ]],
-    ['Apparaat', [
-      ['Browser', navigator.userAgent.slice(0, 90)],
+    [txt('Apparaat'), [
+      [txt('Browser'), navigator.userAgent.slice(0, 90)],
       ['Taal / tijdzone', `${navigator.language} / ${Intl.DateTimeFormat().resolvedOptions().timeZone}`],
-      ['Scherm', `${screen.width}×${screen.height} @${window.devicePixelRatio}x`],
-      ['Tijd op apparaat', new Date().toLocaleTimeString('nl-NL')],
-      ['Tijd in Amsterdam', `${nu.datum} ${String(Math.floor(nu.min / 60)).padStart(2, '0')}:${String(nu.min % 60).padStart(2, '0')}`],
+      [txt('Scherm'), `${screen.width}×${screen.height} @${window.devicePixelRatio}x`],
+      [txt('Tijd op apparaat'), new Date().toLocaleTimeString('nl-NL')],
+      [txt('Tijd in Amsterdam'), `${nu.datum} ${String(Math.floor(nu.min / 60)).padStart(2, '0')}:${String(nu.min % 60).padStart(2, '0')}`],
     ]],
-    ['Uiterlijk', [
+    [txt('Uiterlijk'), [
       ['Palet / modus', `${thema.palet || 'standaard'} / ${thema.modus || 'auto'}`],
-      ['Kaartstijl', thema.kaartstijl || 'kaart'],
-      ['Tekstgrootte', thema.tekstgrootte || 'normaal'],
+      [txt('Kaartstijl'), thema.kaartstijl || 'kaart'],
+      [txt('Tekstgrootte'), thema.tekstgrootte || 'normaal'],
     ]],
   ]
 
@@ -98,29 +99,29 @@ export default function Instellingen({ sessie, leerlingId, onSluit, onMeldingen,
   const kopieer = async () => {
     try {
       await navigator.clipboard.writeText(rapport())
-      setBericht('Rapport gekopieerd. Plak het in een bericht aan de organisatie.')
+      setBericht(txt('Rapport gekopieerd. Plak het in een bericht aan de organisatie.'))
     } catch {
-      setBericht('Kopiëren lukte niet.')
+      setBericht(txt('Kopiëren lukte niet.'))
     }
   }
 
   return (
-    <Modal titel="⚙️ Instellingen" onSluit={onSluit}>
-      <Sectie titel="Voor jezelf" uitleg="Alleen op dit apparaat.">
-        <Seg label="Licht of donker" waarde={voork.modus || ''} opties={[['', 'Zoals klas'], ['auto', 'Telefoon'], ['licht', 'Licht'], ['donker', 'Donker']]} onKies={(x) => zet({ modus: x })} />
-        <Seg label="Tekstgrootte" waarde={voork.tekstgrootte || ''} opties={[['', 'Zoals klas'], ['klein', 'Klein'], ['normaal', 'Normaal'], ['groot', 'Groot']]} onKies={(x) => zet({ tekstgrootte: x })} />
-        <Schakel label="Animaties" aan={voork.animaties !== false} onWissel={(x) => zet({ animaties: x })} />
-        <Schakel label="Emoji-regen uit" aan={!!voork.regen_uit} onWissel={(x) => zet({ regen_uit: x })} />
+    <Modal titel={txt('⚙️ Instellingen')} onSluit={onSluit}>
+      <Sectie titel={txt('Voor jezelf')} uitleg={txt('Alleen op dit apparaat.')}>
+        <Seg label={txt('Licht of donker')} waarde={voork.modus || ''} opties={[['', 'Zoals klas'], ['auto', 'Telefoon'], ['licht', 'Licht'], ['donker', 'Donker']]} onKies={(x) => zet({ modus: x })} />
+        <Seg label={txt('Tekstgrootte')} waarde={voork.tekstgrootte || ''} opties={[['', 'Zoals klas'], ['klein', 'Klein'], ['normaal', 'Normaal'], ['groot', 'Groot']]} onKies={(x) => zet({ tekstgrootte: x })} />
+        <Schakel label={txt('Animaties')} aan={voork.animaties !== false} onWissel={(x) => zet({ animaties: x })} />
+        <Schakel label={txt('Emoji-regen uit')} aan={!!voork.regen_uit} onWissel={(x) => zet({ regen_uit: x })} />
       </Sectie>
 
-      <Sectie titel="Acties">
+      <Sectie titel={txt('Acties')}>
         <div className="rij">
-          <button className="btn ghost klein" onClick={async () => { await ververs(); setBericht('Gegevens ververst.') }}>↻ Gegevens verversen</button>
-          <button className="btn ghost klein" onClick={onMeldingen}>🔔 Meldingen</button>
-          <button className="btn ghost klein" onClick={onInstall}>📲 Installatie-uitleg</button>
-          <button className="btn danger klein" onClick={() => window.confirm('Opgeslagen bestanden van de app wissen en opnieuw laden? Je blijft ingelogd.') && herstel()}>Cache wissen en herladen</button>
-          <button className="btn ghost klein" onClick={kopieer}>📋 Technisch rapport kopiëren</button>
-          <button className="btn ghost klein" onClick={uitloggen}>Uitloggen</button>
+          <button className="btn ghost klein" onClick={async () => { await ververs(); setBericht(txt('Gegevens ververst.')) }}>{txt('↻ Gegevens verversen')}</button>
+          <button className="btn ghost klein" onClick={onMeldingen}>{txt('🔔 Meldingen')}</button>
+          <button className="btn ghost klein" onClick={onInstall}>{txt('📲 Installatie-uitleg')}</button>
+          <button className="btn danger klein" onClick={() => window.confirm(txt('Opgeslagen bestanden van de app wissen en opnieuw laden? Je blijft ingelogd.')) && herstel()}>{txt('Cache wissen en herladen')}</button>
+          <button className="btn ghost klein" onClick={kopieer}>{txt('📋 Technisch rapport kopiëren')}</button>
+          <button className="btn ghost klein" onClick={uitloggen}>{txt('Uitloggen')}</button>
         </div>
         {bericht && <p className="ok" role="status">{bericht}</p>}
       </Sectie>
@@ -133,10 +134,10 @@ export default function Instellingen({ sessie, leerlingId, onSluit, onMeldingen,
         </Sectie>
       ))}
 
-      <Sectie titel={`Foutenlogboek (${fouten.length})`}>
-        {fouten.length === 0 && <p className="note">Geen fouten gelogd.</p>}
+      <Sectie titel={txt('Foutenlogboek ({length})', { length: fouten.length })}>
+        {fouten.length === 0 && <p className="note">{txt('Geen fouten gelogd.')}</p>}
         {fouten.map((f, i) => <Rij key={i} k={new Date(f.t).toLocaleString('nl-NL')} v={f.m} />)}
-        {fouten.length > 0 && <button className="btn ghost klein" onClick={() => { wisFouten(); setFouten([]) }}>Logboek wissen</button>}
+        {fouten.length > 0 && <button className="btn ghost klein" onClick={() => { wisFouten(); setFouten([]) }}>{txt('Logboek wissen')}</button>}
       </Sectie>
     </Modal>
   )

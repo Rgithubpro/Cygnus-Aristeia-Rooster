@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { APP_BESCHRIJVING, APP_NAAM } from './src/teksten.js'
 
 // Cloudflare Workers Builds sets this on every build, so the app can show which commit is live.
 const commit = (process.env.WORKERS_CI_COMMIT_SHA || '').slice(0, 7) || 'lokaal'
@@ -22,6 +23,8 @@ export default defineConfig({
     __COMMIT__: JSON.stringify(commit),
   },
   plugins: [
+    // the app name and description come from src/teksten.js, also in index.html
+    { name: 'app-naam', transformIndexHtml: (html) => html.replaceAll('%APP_NAAM%', APP_NAAM).replaceAll('%APP_BESCHRIJVING%', APP_BESCHRIJVING) },
     react(),
     versiebestand(),
     VitePWA({
@@ -33,9 +36,9 @@ export default defineConfig({
       injectManifest: { globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'] },
       manifest: {
         id: '/',
-        name: 'Aristeia',
-        short_name: 'Aristeia',
-        description: 'Jouw rooster voor de klassenstrijd.',
+        name: APP_NAAM,
+        short_name: APP_NAAM.slice(0, 12),
+        description: APP_BESCHRIJVING,
         lang: 'nl',
         start_url: '/',
         scope: '/',

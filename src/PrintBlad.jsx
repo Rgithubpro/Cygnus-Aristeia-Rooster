@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useData } from './data.jsx'
-import { nl } from './strings.js'
 import { dagDatum, dagLabel } from './util.js'
 import Modal from './Modal.jsx'
+import { txt } from './t.js'
 
 export default function PrintBlad({ open, onSluit }) {
   const { data } = useData()
@@ -27,22 +27,22 @@ export default function PrintBlad({ open, onSluit }) {
   const naam = Object.fromEntries(data.leerlingen.map((l) => [l.id, l.naam]))
 
   function voor(a, id) {
-    if (a.globaal) return nl.iedereen
+    if (a.globaal) return txt('Iedereen')
     const anderen = a.leerlingen.filter((x) => x !== id).map((x) => naam[x]).filter(Boolean)
-    return anderen.length ? `${nl.met}: ${anderen.join(', ')}` : nl.alleen
+    return anderen.length ? `${txt('Met')}: ${anderen.join(', ')}` : txt('Alleen')
   }
 
   return (
     <>
       {open && (
-        <Modal titel={nl.printTitel} onSluit={onSluit}>
-          <p className="note">{nl.printUitleg}</p>
+        <Modal titel={txt('Roosters printen')} onSluit={onSluit}>
+          <p className="note">{txt('Per persoon één blaadje met alleen hun eigen activiteiten.')}</p>
           <div className="rij">
             <button className="btn ghost klein" onClick={() => setGekozen(data.leerlingen.map((l) => l.id))}>
-              {nl.iedereen}
+              {txt('Iedereen')}
             </button>
             <button className="btn ghost klein" onClick={() => setGekozen([])}>
-              {nl.niemand}
+              {txt('Niemand')}
             </button>
           </div>
           <ul className="vinklijst">
@@ -63,7 +63,7 @@ export default function PrintBlad({ open, onSluit }) {
               onSluit()
             }}
           >
-            🖨️ {nl.printen}
+            🖨️ {txt('Printen')}
           </button>
         </Modal>
       )}
@@ -73,7 +73,7 @@ export default function PrintBlad({ open, onSluit }) {
             {afdruk.map((id) => (
               <section key={id} className="print-pagina">
                 <h1>
-                  {nl.roosterPrintTitel}: {naam[id]} ({data.klas.naam})
+                  {txt('Aristeia')}: {naam[id]} ({data.klas.naam})
                 </h1>
                 {[1, 2].map((d) => {
                   const items = data.activiteiten
@@ -83,15 +83,15 @@ export default function PrintBlad({ open, onSluit }) {
                     <div key={d}>
                       <h2>{dagLabel(dagDatum(data.instellingen, d), d)}</h2>
                       {items.length === 0 ? (
-                        <p>{nl.geenActiviteiten}</p>
+                        <p>{txt('Geen activiteiten')}</p>
                       ) : (
                         <table>
                           <thead>
                             <tr>
-                              <th>{nl.tijd}</th>
-                              <th>{nl.activiteit}</th>
-                              <th>{nl.locatie}</th>
-                              <th>{nl.voor}</th>
+                              <th>{txt('Tijd')}</th>
+                              <th>{txt('Activiteit')}</th>
+                              <th>{txt('Locatie')}</th>
+                              <th>{txt('Voor')}</th>
                             </tr>
                           </thead>
                           <tbody>

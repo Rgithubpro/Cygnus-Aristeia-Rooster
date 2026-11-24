@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { rpc } from './api.js'
 import { useData } from './data.jsx'
-import { nl } from './strings.js'
+import { foutTekst, txt } from './t.js'
 
 export default function BeheerLeerlingen({ sessie }) {
   const { data, ververs } = useData()
@@ -14,11 +14,11 @@ export default function BeheerLeerlingen({ sessie }) {
     setFout('')
     try {
       const r = await rpc('leerlingen_toevoegen', { p_token: sessie.token, p_namen: namen })
-      setInfo(r ? `${r.toegevoegd} ${nl.toegevoegdInfo}${r.overgeslagen ? `, ${r.overgeslagen} ${nl.overgeslagenInfo}` : ''}` : '')
+      setInfo(r ? `${r.toegevoegd} ${txt('toegevoegd')}${r.overgeslagen ? `, ${r.overgeslagen} ${txt('overgeslagen (stonden er al)')}` : ''}` : '')
       setNamen('')
       ververs()
     } catch (err) {
-      setFout(nl.fouten[err.code] || nl.laadFout)
+      setFout(foutTekst(err.code) || txt('Er ging iets mis. Controleer je verbinding en probeer het opnieuw.'))
     }
   }
 
@@ -30,19 +30,19 @@ export default function BeheerLeerlingen({ sessie }) {
     <div className="stack">
       <form className="card stack" onSubmit={voegToe}>
         <label className="veld">
-          <span>{nl.namenToevoegen}</span>
+          <span>{txt('Namen toevoegen')}</span>
           <textarea value={namen} onChange={(e) => setNamen(e.target.value)} rows={5} />
-          <small className="note">{nl.namenUitleg}</small>
+          <small className="note">{txt('Eén naam per regel. Je kunt een lijst uit Excel plakken.')}</small>
         </label>
         {fout && <p className="fout">{fout}</p>}
         {info && <p className="ok">✓ {info}</p>}
         <button className="btn" disabled={!namen.trim()}>
-          {nl.toevoegen}
+          {txt('Toevoegen')}
         </button>
       </form>
 
       <p className="note">
-        {gekoppeld} van {aantal} {nl.gekoppeldVan}, {meldingen} {nl.meldingenAanVan}
+        {gekoppeld} {txt('van')} {aantal} {txt('gekoppeld')}, {meldingen} {txt('met meldingen')}
       </p>
       <ul className="stack lijst-los">
         {data.leerlingen.map((l) => (
@@ -67,7 +67,7 @@ function Rij({ l, sessie, ververs }) {
   }
 
   async function verwijder() {
-    if (!window.confirm(`${l.naam} ${nl.zekerLeerling}`)) return
+    if (!window.confirm(`${l.naam} ${txt('verwijderen? De leerling verdwijnt ook uit alle activiteiten.')}`)) return
     await rpc('leerling_verwijderen', { p_token: sessie.token, p_id: l.id })
     ververs()
   }
@@ -77,15 +77,15 @@ function Rij({ l, sessie, ververs }) {
       <div className="rij tussen">
         <span>
           <strong>{l.naam}</strong>{' '}
-          <span title={nl.gekoppeld}>{l.gekoppeld ? '✓' : '·'}</span>{' '}
-          <span title={nl.metMeldingen}>{l.meldingen ? '🔔' : ''}</span>
+          <span title={txt('Op een apparaat gekoppeld')}>{l.gekoppeld ? '✓' : '·'}</span>{' '}
+          <span title={txt('Meldingen aan')}>{l.meldingen ? '🔔' : ''}</span>
         </span>
         <span className="rij">
           <button className="btn ghost klein" onClick={() => setOpen(!open)}>
             🎭
           </button>
           <button className="btn danger klein" onClick={verwijder}>
-            {nl.verwijderen}
+            {txt('Verwijderen')}
           </button>
         </span>
       </div>
@@ -93,12 +93,12 @@ function Rij({ l, sessie, ververs }) {
       {open && (
         <div className="stack">
           <label className="veld">
-            <span>{nl.rolInfo}</span>
+            <span>{txt('Persoonlijke info')}</span>
             <textarea value={info} onChange={(e) => setInfo(e.target.value)} rows={2} maxLength={300} />
-            <small className="note">{nl.rolInfoUitleg}</small>
+            <small className="note">{txt('Wordt alleen aan deze leerling getoond, bijvoorbeeld een rol of opdracht.')}</small>
           </label>
           <button className="btn" disabled={bezig} onClick={bewaar}>
-            {nl.opslaan}
+            {txt('Opslaan')}
           </button>
         </div>
       )}

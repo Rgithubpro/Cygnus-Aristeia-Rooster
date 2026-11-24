@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { txt } from '../t.js'
 
 const KEUZES = ['⭐', '🔥', '🌈', '🎉', '🏆', '💪', '🐉', '🦄', '🐯', '🦊', '🐼', '🦁', '⚡', '🚀', '🎯', '🎵', '❤️', '💎', '🌟', '🍀', '🌸', '🍕', '⚽', '🏀', '🎮', '🎨', '👑', '🦋', '🌊', '☀️']
 
@@ -20,12 +21,12 @@ export default function EmojiLijst({ label, waarde = [], onWijzig, max = 5 }) {
             {e} ✕
           </button>
         ))}
-        {waarde.length === 0 && <small className="note">Nog geen emoji gekozen</small>}
+        {waarde.length === 0 && <small className="note">{txt('Nog geen emoji gekozen')}</small>}
       </div>
       <div className="rij">
-        <input className="emoji-in" value={eigen} maxLength={12} onChange={(e) => setEigen(e.target.value)} aria-label="Eigen emoji" placeholder="🙂" />
+        <input className="emoji-in" value={eigen} maxLength={12} onChange={(e) => setEigen(e.target.value)} aria-label={txt('Eigen emoji')} placeholder="🙂" />
         <button type="button" className="btn ghost klein" disabled={!eigen.trim() || waarde.length >= max} onClick={() => { voeg(eigen); setEigen('') }}>
-          Toevoegen
+          {txt('Toevoegen')}
         </button>
       </div>
       <div className="emoji-rooster">

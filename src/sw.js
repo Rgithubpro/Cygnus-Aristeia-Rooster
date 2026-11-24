@@ -4,6 +4,7 @@ import { NavigationRoute, registerRoute } from 'workbox-routing'
 import { CacheFirst } from 'workbox-strategies'
 import { ExpirationPlugin } from 'workbox-expiration'
 import { CacheableResponsePlugin } from 'workbox-cacheable-response'
+import { txt } from './t.js'
 
 clientsClaim()
 // a new version waits until the page asks for it (see src/update.js)
@@ -32,7 +33,7 @@ self.addEventListener('push', (event) => {
     d = { body: event.data ? event.data.text() : '' }
   }
   event.waitUntil(
-    self.registration.showNotification(d.title || 'Aristeia', {
+    self.registration.showNotification(d.title || txt('Aristeia'), {
       body: d.body || '',
       icon: d.icon || '/icons/icon-192.png',
       badge: '/icons/icon-192.png',

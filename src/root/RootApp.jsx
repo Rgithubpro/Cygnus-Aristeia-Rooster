@@ -9,16 +9,17 @@ import RootStand from './RootStand.jsx'
 import RootPush from './RootPush.jsx'
 import RootInstellingen from './RootInstellingen.jsx'
 import RootVeiligheid from './RootVeiligheid.jsx'
+import { txt } from '../t.js'
 
 const TABS = [
-  ['klassen', 'Klassen'],
-  ['programma', 'Programma'],
-  ['sjablonen', 'Sjablonen'],
-  ['info', 'Info'],
-  ['stand', 'Stand'],
-  ['push', 'Meldingen'],
-  ['instellingen', 'Instellingen'],
-  ['veiligheid', 'Veiligheid'],
+  ['klassen', txt('Klassen')],
+  ['programma', txt('Programma')],
+  ['sjablonen', txt('Sjablonen')],
+  ['info', txt('Info')],
+  ['stand', txt('Stand')],
+  ['push', txt('Meldingen')],
+  ['instellingen', txt('Instellingen')],
+  ['veiligheid', txt('Veiligheid')],
 ]
 
 export default function RootApp() {
@@ -66,24 +67,24 @@ export default function RootApp() {
       <header className="head">
         <Mark size={44} />
         <div className="grow">
-          <h1>Aristeia Root</h1>
-          <p className="tagline">Organisatie</p>
+          <h1>{txt('Aristeia Root')}</h1>
+          <p className="tagline">{txt('Organisatie')}</p>
         </div>
         {stap === 'klaar' && (
           <button className="btn ghost klein" onClick={uitloggen}>
-            Uitloggen
+            {txt('Uitloggen')}
           </button>
         )}
       </header>
 
-      {stap === 'laden' && <p className="note">Laden…</p>}
+      {stap === 'laden' && <p className="note">{txt('Laden…')}</p>}
       {stap === 'login' && <RootLogin onKlaar={beoordeel} />}
       {stap === 'mfa' && <RootMfa onKlaar={beoordeel} onAnnuleer={uitloggen} />}
       {stap === 'geenToegang' && (
         <div className="card stack">
-          <p className="fout">Dit account heeft geen Root-rechten.</p>
+          <p className="fout">{txt('Dit account heeft geen Root-rechten.')}</p>
           <button className="btn" onClick={uitloggen}>
-            Uitloggen
+            {txt('Uitloggen')}
           </button>
         </div>
       )}
@@ -124,24 +125,24 @@ function RootLogin({ onKlaar }) {
     const c = await rootClient()
     const { error } = await c.auth.signInWithPassword({ email, password: ww })
     setBezig(false)
-    if (error) return setFout('Inloggen mislukt. Controleer je e-mailadres en wachtwoord.')
+    if (error) return setFout(txt('Inloggen mislukt. Controleer je e-mailadres en wachtwoord.'))
     onKlaar()
   }
 
   return (
     <form className="card stack" onSubmit={verstuur}>
-      <h2>Inloggen als Root</h2>
+      <h2>{txt('Inloggen als Root')}</h2>
       <label className="veld">
-        <span>E-mailadres</span>
+        <span>{txt('E-mailadres')}</span>
         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" required />
       </label>
       <label className="veld">
-        <span>Wachtwoord</span>
+        <span>{txt('Wachtwoord')}</span>
         <input type="password" value={ww} onChange={(e) => setWw(e.target.value)} autoComplete="current-password" required />
       </label>
       {fout && <p className="fout">{fout}</p>}
       <button className="btn" disabled={bezig}>
-        Inloggen
+        {txt('Inloggen')}
       </button>
     </form>
   )
@@ -157,23 +158,23 @@ function RootMfa({ onKlaar, onAnnuleer }) {
     const c = await rootClient()
     const { data: lijst } = await c.auth.mfa.listFactors()
     const factor = lijst?.totp?.[0]
-    if (!factor) return setFout('Geen 2FA-methode gevonden.')
+    if (!factor) return setFout(txt('Geen 2FA-methode gevonden.'))
     const { error } = await c.auth.mfa.challengeAndVerify({ factorId: factor.id, code: code.trim() })
-    if (error) return setFout('Deze code klopt niet.')
+    if (error) return setFout(txt('Deze code klopt niet.'))
     onKlaar()
   }
 
   return (
     <form className="card stack" onSubmit={verstuur}>
-      <h2>Tweestapsverificatie</h2>
+      <h2>{txt('Tweestapsverificatie')}</h2>
       <label className="veld">
-        <span>Code uit je authenticator-app</span>
+        <span>{txt('Code uit je authenticator-app')}</span>
         <input value={code} onChange={(e) => setCode(e.target.value)} inputMode="numeric" autoComplete="one-time-code" maxLength={6} required />
       </label>
       {fout && <p className="fout">{fout}</p>}
-      <button className="btn">Bevestigen</button>
+      <button className="btn">{txt('Bevestigen')}</button>
       <button type="button" className="btn ghost" onClick={onAnnuleer}>
-        Annuleren
+        {txt('Annuleren')}
       </button>
     </form>
   )

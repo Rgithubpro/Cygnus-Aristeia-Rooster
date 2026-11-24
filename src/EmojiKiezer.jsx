@@ -1,4 +1,4 @@
-import { nl } from './strings.js'
+import { txt } from './t.js'
 
 const KEUZES = ['⚽', '🏀', '🏐', '🏑', '🏓', '🥏', '🏃', '🪢', '🧠', '🎤', '🎸', '💃', '🎮', '♟️', '🔐', '🎨', '📸', '🍕', '☕', '🎉',
   '🏆', '🥇', '⭐', '🔥', '💪', '🎯', '🧩', '🎲', '🎬', '📚', '🧪', '🚴', '🏊', '🤸', '🎳', '🏹', '🛹', '🎭', '🌈', '🐉']
@@ -12,7 +12,7 @@ export default function EmojiKiezer({ label, waarde, onKies, auto = false }) {
         <input className="emoji-in" value={waarde} maxLength={12} onChange={(e) => onKies(e.target.value)} aria-label={label} />
         {auto && (
           <button type="button" className="btn ghost klein" onClick={() => onKies('')}>
-            {nl.emojiAuto}
+            {txt('Automatisch')}
           </button>
         )}
       </div>

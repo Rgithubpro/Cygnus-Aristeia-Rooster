@@ -1,8 +1,10 @@
+import { txt } from './t.js'
+
 export const KLEUREN = [
-  ['blauw', '🔵 Blauw', '#2f56d9'], ['groen', '🟢 Groen', '#1f8a4c'], ['amber', '🟡 Amber', '#c98a0b'], ['paars', '🟣 Paars', '#7a3cc4'],
-  ['koraal', '🔴 Koraal', '#d9534f'], ['grijs', '⚪ Grijs', '#6b7280'], ['roze', 'Roze', '#d6336c'], ['turquoise', 'Turquoise', '#0e9aa7'],
-  ['limoen', 'Limoen', '#7cb518'], ['oranje', 'Oranje', '#f08c00'], ['rood', 'Rood', '#d62828'], ['indigo', 'Indigo', '#4361ee'],
-  ['bruin', 'Bruin', '#8d5524'], ['goud', 'Goud', '#b8860b'],
+  ['blauw', txt('🔵 Blauw'), '#2f56d9'], ['groen', txt('🟢 Groen'), '#1f8a4c'], ['amber', txt('🟡 Amber'), '#c98a0b'], ['paars', txt('🟣 Paars'), '#7a3cc4'],
+  ['koraal', txt('🔴 Koraal'), '#d9534f'], ['grijs', txt('⚪ Grijs'), '#6b7280'], ['roze', txt('Roze'), '#d6336c'], ['turquoise', txt('Turquoise'), '#0e9aa7'],
+  ['limoen', txt('Limoen'), '#7cb518'], ['oranje', txt('Oranje'), '#f08c00'], ['rood', txt('Rood'), '#d62828'], ['indigo', txt('Indigo'), '#4361ee'],
+  ['bruin', txt('Bruin'), '#8d5524'], ['goud', txt('Goud'), '#b8860b'],
 ]
 
 export function emoji(titel = '') {
@@ -60,7 +62,7 @@ export const naarMin = (t) => {
 export const dagDatum = (instellingen, dag) => instellingen?.[`dag${dag}`] || null
 
 export function dagLabel(datum, dag) {
-  if (!datum) return `Dag ${dag}`
+  if (!datum) return txt('Dag {dag}', { dag })
   const tekst = new Intl.DateTimeFormat('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(`${datum}T12:00:00`))
   return tekst.charAt(0).toUpperCase() + tekst.slice(1)
 }

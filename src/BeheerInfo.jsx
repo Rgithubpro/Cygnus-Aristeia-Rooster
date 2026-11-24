@@ -3,9 +3,9 @@ import { rpc } from './api.js'
 import BestandsKnop from './BestandsKnop.jsx'
 import { afbeeldingUrl } from './config.js'
 import { useData } from './data.jsx'
-import { nl } from './strings.js'
 import { uploadKlasAfbeelding, verwijderKlasAfbeelding } from './upload.js'
 import BerichtKaart from './BerichtKaart.jsx'
+import { foutTekst, txt } from './t.js'
 
 const LEEG = { id: null, titel: '', tekst: '', afbeelding_pad: '', gepubliceerd: true }
 
@@ -32,13 +32,13 @@ export default function BeheerInfo({ sessie }) {
       setBestand(null)
       ververs()
     } catch (err) {
-      setFout(nl.fouten[err.code] || (err.message === 'anoniem_uit' ? nl.anoniemUit : nl.uploadFout))
+      setFout(foutTekst(err.code) || (err.message === 'anoniem_uit' ? txt('Uploaden staat nog niet aan. Vraag de organisatie om anonieme logins aan te zetten.') : txt('Uploaden is niet gelukt. Probeer het opnieuw met een kleinere foto.')))
     }
     setBezig(false)
   }
 
   async function verwijder(b) {
-    if (!window.confirm(nl.zekerBericht)) return
+    if (!window.confirm(txt('Dit bericht verwijderen?'))) return
     const r = await rpc('bericht_verwijderen', { p_token: sessie.token, p_id: b.id })
     if (r?.afbeelding_pad) verwijderKlasAfbeelding(sessie, r.afbeelding_pad).catch(() => {})
     ververs()
@@ -54,39 +54,39 @@ export default function BeheerInfo({ sessie }) {
   return (
     <div className="stack">
       <form className="card stack" onSubmit={bewaar}>
-        <h3>{f.id ? nl.bewerken : nl.nieuwBericht}</h3>
+        <h3>{f.id ? txt('Bewerken') : txt('Nieuw bericht voor je klas')}</h3>
         <label className="veld">
-          <span>{nl.titel}</span>
+          <span>{txt('Titel')}</span>
           <input value={f.titel} onChange={(e) => setF({ ...f, titel: e.target.value })} maxLength={80} required />
         </label>
         <label className="veld">
-          <span>{nl.tekst}</span>
+          <span>{txt('Tekst')}</span>
           <textarea value={f.tekst} onChange={(e) => setF({ ...f, tekst: e.target.value })} rows={4} maxLength={2000} />
-          <small className="note">{nl.berichtLinks}</small>
+          <small className="note">{txt('Links worden automatisch herkend. Embed-code en HTML worden niet ondersteund.')}</small>
         </label>
         <label className="veld">
-          <span>{nl.afbeelding}</span>
+          <span>{txt('Afbeelding (optioneel)')}</span>
           <BestandsKnop onBestand={setBestand} bestand={bestand} />
         </label>
         {f.afbeelding_pad && !bestand && (
           <div className="rij">
             <img className="qr-klein" src={afbeeldingUrl(f.afbeelding_pad)} alt="" />
             <button type="button" className="btn danger klein" onClick={() => setF({ ...f, afbeelding_pad: '' })}>
-              {nl.afbeeldingWeg}
+              {txt('Afbeelding weghalen')}
             </button>
           </div>
         )}
         <label className="vink">
           <input type="checkbox" checked={f.gepubliceerd} onChange={(e) => setF({ ...f, gepubliceerd: e.target.checked })} />
-          <span>{nl.gepubliceerd}</span>
+          <span>{txt('Direct publiceren (anders opgeslagen als concept)')}</span>
         </label>
         {fout && <p className="fout">{fout}</p>}
         <button className="btn" disabled={bezig || !f.titel.trim()}>
-          {nl.plaatsen}
+          {txt('Plaatsen')}
         </button>
         {f.id && (
           <button type="button" className="btn ghost" onClick={() => { setF(LEEG); setBestand(null) }}>
-            {nl.annuleren}
+            {txt('Annuleren')}
           </button>
         )}
       </form>
@@ -102,13 +102,13 @@ export default function BeheerInfo({ sessie }) {
                     className="btn ghost klein"
                     onClick={() => { setF({ id: b.id, titel: b.titel, tekst: b.tekst, afbeelding_pad: b.afbeelding_pad || '', gepubliceerd: b.gepubliceerd }); setBestand(null) }}
                   >
-                    {nl.bewerken}
+                    {txt('Bewerken')}
                   </button>
                   <button className="btn ghost klein" onClick={() => wisselZichtbaar(b)}>
-                    {b.gepubliceerd ? nl.verberg : nl.publiceer}
+                    {b.gepubliceerd ? txt('Verbergen') : txt('Publiceren')}
                   </button>
                   <button className="btn danger klein" onClick={() => verwijder(b)}>
-                    {nl.verwijderen}
+                    {txt('Verwijderen')}
                   </button>
                 </div>
               )

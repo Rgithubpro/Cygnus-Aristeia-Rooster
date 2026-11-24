@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { txt } from './t.js'
 
 const MEASUREMENT_ID = import.meta.env.VITE_GA_MEASUREMENT_ID?.trim() || ''
 const CONSENT_KEY = `ksv.analytics_consent.${MEASUREMENT_ID || 'unconfigured'}`
@@ -126,7 +127,7 @@ export function stuurPaginaweergave(tab, klasSlug, rol) {
   if (isDubbelePaginaweergave(`page_view:${basis.class_slug}:${basis.user_role}:${tab}`)) return
 
   window.gtag('event', 'page_view', {
-    page_title: `Aristeia | ${tab}`,
+    page_title: txt('Aristeia | {tab}', { tab: tab }),
     page_location: `${window.location.origin}${pad}`,
     page_path: pad,
     page_referrer: '',

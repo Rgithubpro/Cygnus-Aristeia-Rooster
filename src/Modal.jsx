@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { nl } from './strings.js'
+import { txt } from './t.js'
 
 // Rendered directly on <body> so a popup always covers the whole screen, whatever it is opened from.
 export default function Modal({ titel, onSluit, children }) {
@@ -16,7 +16,7 @@ export default function Modal({ titel, onSluit, children }) {
         {titel && <h2>{titel}</h2>}
         {children}
         <button className="btn ghost" onClick={onSluit}>
-          {nl.sluiten}
+          {txt('Sluiten')}
         </button>
       </div>
     </div>,

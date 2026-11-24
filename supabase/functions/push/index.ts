@@ -7,6 +7,13 @@
 import postgres from 'npm:postgres@3.4.4'
 import webpush from 'npm:web-push@3.6.7'
 
+// All texts of the notifications live here (this function is deployed separately from the app, so it cannot use src/teksten.js).
+const TEKSTEN = {
+  herinnering: (onderwerp: string) => `Straks: ${onderwerp}`,
+  testTitel: 'Testmelding',
+  testTekst: 'Het werkt! Zo zie je straks je herinneringen.',
+}
+
 const sql = postgres(Deno.env.get('SUPABASE_DB_URL')!, { max: 1, prepare: false })
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const CRON_SECRET = Deno.env.get('CRON_SECRET') ?? ''
@@ -111,7 +118,7 @@ Deno.serve(async (req) => {
       const items = rijen.flatMap((r) =>
         subs.filter((s) => s.leerling_id === r.leerling).map((sub) => ({
           sub,
-          payload: { title: `Straks: ${r.onderwerp}`, body: `${r.starttijd}${r.plek ? `, ${r.plek}` : ''}`, tag: 'herinnering', url: '/', icon: iconVan(sub) },
+          payload: { title: TEKSTEN.herinnering(r.onderwerp), body: `${r.starttijd}${r.plek ? `, ${r.plek}` : ''}`, tag: 'herinnering', url: '/', icon: iconVan(sub) },
         })))
       const res = await verstuur(items)
       return json({ ok: true, verstuurd: res.ok, mislukt: res.mislukt, fouten: res.fouten })
@@ -130,7 +137,7 @@ Deno.serve(async (req) => {
         select p.id, p.endpoint, p.p256dh, p.auth, k.thema ->> 'logo' as logo from public.push_abonnementen p
           join public.leerlingen l on l.id = p.leerling_id join public.klassen k on k.id = l.klas_id
          where p.leerling_id = ${leerling}::uuid`
-      const res = await verstuur(subs.map((sub) => ({ sub, payload: { title: 'Testmelding', body: 'Het werkt! Zo zie je straks je herinneringen.', tag: 'test', url: '/', icon: iconVan(sub) } })))
+      const res = await verstuur(subs.map((sub) => ({ sub, payload: { title: TEKSTEN.testTitel, body: TEKSTEN.testTekst, tag: 'test', url: '/', icon: iconVan(sub) } })))
       return json({ ok: true, verstuurd: res.ok, mislukt: res.mislukt, apparaten: subs.length, fouten: res.fouten })
     }
 

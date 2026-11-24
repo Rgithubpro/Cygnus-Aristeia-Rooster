@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { nl } from './strings.js'
 import { splitLinks } from './util.js'
 import Modal from './Modal.jsx'
+import { txt } from './t.js'
 
 // Shows text as plain text. http(s) links become buttons that ask before opening.
 export default function TekstMetLinks({ tekst }) {
@@ -18,9 +18,9 @@ export default function TekstMetLinks({ tekst }) {
         ),
       )}
       {link && (
-        <Modal titel={`🔗 ${nl.externeLink}`} onSluit={() => setLink(null)}>
+        <Modal titel={`🔗 ${txt('Externe link')}`} onSluit={() => setLink(null)}>
           <p className="woord-af">{link}</p>
-          <p>{nl.linkVraag}</p>
+          <p>{txt('Wil je doorgaan naar deze site?')}</p>
           <button
             className="btn"
             onClick={() => {
@@ -28,7 +28,7 @@ export default function TekstMetLinks({ tekst }) {
               setLink(null)
             }}
           >
-            {nl.jaGaDoor}
+            {txt('Ja, ga door')}
           </button>
         </Modal>
       )}
@@ -45,9 +45,9 @@ export function LinkKnop({ url, tekst }) {
         🔗 {tekst || url}
       </button>
       {open && (
-        <Modal titel={`🔗 ${nl.externeLink}`} onSluit={() => setOpen(false)}>
+        <Modal titel={`🔗 ${txt('Externe link')}`} onSluit={() => setOpen(false)}>
           <p className="woord-af">{url}</p>
-          <p>{nl.linkVraag}</p>
+          <p>{txt('Wil je doorgaan naar deze site?')}</p>
           <button
             className="btn"
             onClick={() => {
@@ -55,7 +55,7 @@ export function LinkKnop({ url, tekst }) {
               setOpen(false)
             }}
           >
-            {nl.jaGaDoor}
+            {txt('Ja, ga door')}
           </button>
         </Modal>
       )}

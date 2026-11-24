@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { rootRpc } from './client.js'
 import ActiviteitForm, { LEEG } from '../ActiviteitForm.jsx'
 import { emoji } from '../util.js'
+import { txt } from '../t.js'
 
 // Example roosters ("sjablonen"): parts of a rooster that class admins can copy into their own class.
 export default function RootSjablonen({ overzicht }) {
@@ -27,31 +28,31 @@ export default function RootSjablonen({ overzicht }) {
 
   return (
     <div className="stack">
-      <p className="note">Maak voorbeeldroosters of losse onderdelen. Klassenbeheerders kiezen zelf wat ze overnemen en voegen daarna alleen hun leerlingen toe.</p>
-      <button className="btn" onClick={() => setBewerk({ id: null, naam: '', beschrijving: '', klas_ids: [] })}>Nieuw voorbeeldrooster</button>
-      {lijst && lijst.length === 0 && <p className="note">Nog geen voorbeeldroosters.</p>}
+      <p className="note">{txt('Maak voorbeeldroosters of losse onderdelen. Klassenbeheerders kiezen zelf wat ze overnemen en voegen daarna alleen hun leerlingen toe.')}</p>
+      <button className="btn" onClick={() => setBewerk({ id: null, naam: '', beschrijving: '', klas_ids: [] })}>{txt('Nieuw voorbeeldrooster')}</button>
+      {lijst && lijst.length === 0 && <p className="note">{txt('Nog geen voorbeeldroosters.')}</p>}
       {(lijst || []).map((j) => (
         <div key={j.id} className="card stack klein-gap">
           <div className="rij tussen">
             <strong>{j.naam}</strong>
-            <span className="note">{j.klas_ids.length === 0 ? 'Alle klassen' : `${j.klas_ids.length} klas(sen)`}</span>
+            <span className="note">{j.klas_ids.length === 0 ? txt('Alle klassen') : `${j.klas_ids.length} klas(sen)`}</span>
           </div>
           {j.beschrijving && <span className="note">{j.beschrijving}</span>}
           <ul className="keuzelijst">
             {j.items.map((i) => (
               <li key={i.id} className="rij tussen">
-                <span>{i.emoji || emoji(i.titel)} Dag {i.dag} {i.start}–{i.eind}: {i.titel}</span>
+                <span>{i.emoji || emoji(i.titel)} {txt('Dag')} {i.dag} {i.start}–{i.eind}: {i.titel}</span>
                 <span className="rij">
-                  <button className="btn ghost klein" onClick={() => setItem({ sjabloon: j.id, start: i })}>Bewerken</button>
-                  <button className="btn danger klein" onClick={async () => { if (window.confirm('Dit onderdeel verwijderen? Al gekopieerde activiteiten blijven bestaan.')) { await rootRpc('root_sjabloon_item_verwijderen', { p_id: i.id }); laad() } }}>✕</button>
+                  <button className="btn ghost klein" onClick={() => setItem({ sjabloon: j.id, start: i })}>{txt('Bewerken')}</button>
+                  <button className="btn danger klein" onClick={async () => { if (window.confirm(txt('Dit onderdeel verwijderen? Al gekopieerde activiteiten blijven bestaan.'))) { await rootRpc('root_sjabloon_item_verwijderen', { p_id: i.id }); laad() } }}>✕</button>
                 </span>
               </li>
             ))}
           </ul>
           <div className="rij">
-            <button className="btn klein" onClick={() => setItem({ sjabloon: j.id, start: { ...LEEG } })}>+ Onderdeel</button>
-            <button className="btn ghost klein" onClick={() => setBewerk(j)}>Naam en klassen</button>
-            <button className="btn danger klein" onClick={async () => { if (window.confirm('Dit hele voorbeeldrooster verwijderen?')) { await rootRpc('root_sjabloon_verwijderen', { p_id: j.id }); laad() } }}>Verwijderen</button>
+            <button className="btn klein" onClick={() => setItem({ sjabloon: j.id, start: { ...LEEG } })}>{txt('+ Onderdeel')}</button>
+            <button className="btn ghost klein" onClick={() => setBewerk(j)}>{txt('Naam en klassen')}</button>
+            <button className="btn danger klein" onClick={async () => { if (window.confirm(txt('Dit hele voorbeeldrooster verwijderen?'))) { await rootRpc('root_sjabloon_verwijderen', { p_id: j.id }); laad() } }}>{txt('Verwijderen')}</button>
           </div>
         </div>
       ))}
@@ -71,26 +72,26 @@ function SjabloonForm({ start, klassen, onKlaar, onAnnuleer }) {
       await rootRpc('root_sjabloon_opslaan', { p_id: f.id, p_naam: f.naam, p_beschrijving: f.beschrijving, p_klas_ids: f.klas_ids })
       onKlaar()
     } catch {
-      setFout('Opslaan mislukt.')
+      setFout(txt('Opslaan mislukt.'))
     }
   }
   return (
     <form className="card stack" onSubmit={bewaar}>
-      <label className="veld"><span>Naam</span><input value={f.naam} onChange={(e) => setF({ ...f, naam: e.target.value })} maxLength={60} required /></label>
-      <label className="veld"><span>Beschrijving (voor de beheerders)</span><textarea value={f.beschrijving} onChange={(e) => setF({ ...f, beschrijving: e.target.value })} rows={2} maxLength={300} /></label>
+      <label className="veld"><span>{txt('Naam')}</span><input value={f.naam} onChange={(e) => setF({ ...f, naam: e.target.value })} maxLength={60} required /></label>
+      <label className="veld"><span>{txt('Beschrijving (voor de beheerders)')}</span><textarea value={f.beschrijving} onChange={(e) => setF({ ...f, beschrijving: e.target.value })} rows={2} maxLength={300} /></label>
       <fieldset className="veld">
-        <legend>Voor welke klassen?</legend>
-        <label className="vink"><input type="checkbox" checked={alle} onChange={() => setF({ ...f, klas_ids: [] })} /><span>Alle klassen</span></label>
+        <legend>{txt('Voor welke klassen?')}</legend>
+        <label className="vink"><input type="checkbox" checked={alle} onChange={() => setF({ ...f, klas_ids: [] })} /><span>{txt('Alle klassen')}</span></label>
         <ul className="vinklijst">
           {klassen.map((k) => (
             <li key={k.id}><label><input type="checkbox" checked={f.klas_ids.includes(k.id)} onChange={() => wissel(k.id)} /><span>{k.naam}</span></label></li>
           ))}
         </ul>
-        {!alle && <small className="note">Alleen de aangevinkte klassen zien dit voorbeeldrooster.</small>}
+        {!alle && <small className="note">{txt('Alleen de aangevinkte klassen zien dit voorbeeldrooster.')}</small>}
       </fieldset>
       {fout && <p className="fout">{fout}</p>}
-      <button className="btn">Opslaan</button>
-      <button type="button" className="btn ghost" onClick={onAnnuleer}>Annuleren</button>
+      <button className="btn">{txt('Opslaan')}</button>
+      <button type="button" className="btn ghost" onClick={onAnnuleer}>{txt('Annuleren')}</button>
     </form>
   )
 }

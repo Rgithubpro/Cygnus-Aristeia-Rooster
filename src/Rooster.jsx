@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useData } from './data.jsx'
-import { nl } from './strings.js'
 import { useThema } from './themaContext.jsx'
 import { toonVan } from './themaModel.js'
 import { dagDatum, dagLabel, dagVanVandaag, emoji, isHuidig, nuAmsterdam } from './util.js'
 import Modal from './Modal.jsx'
 import PrintBlad from './PrintBlad.jsx'
+import { txt } from './t.js'
 
 const tijdFormat = new Intl.DateTimeFormat('nl-NL', { hour: '2-digit', minute: '2-digit' })
 
@@ -53,20 +53,20 @@ export default function Rooster() {
   const persoonInfo = wie === 'allen' ? '' : wie === eigen ? data.mijn_info : data.leerlingen.find((l) => l.id === wie)?.rol_info
 
   function voorWie(a) {
-    if (a.globaal) return `👥 ${nl.iedereen}`
+    if (a.globaal) return `👥 ${txt('Iedereen')}`
     if (wie === 'allen') return a.leerlingen.length ? `👥 ${a.leerlingen.map((id) => naam[id]).filter(Boolean).join(', ')}` : ''
     const anderen = a.leerlingen.filter((id) => id !== wie).map((id) => naam[id]).filter(Boolean)
-    if (anderen.length === 0) return wie === eigen ? `★ ${nl.alleenJij}` : `★ ${nl.alleen} ${naam[wie] || ''}`
-    return `★ ${nl.met}: ${anderen.join(', ')}`
+    if (anderen.length === 0) return wie === eigen ? `★ ${txt('Alleen jij')}` : `★ ${txt('Alleen')} ${naam[wie] || ''}`
+    return `★ ${txt('Met')}: ${anderen.join(', ')}`
   }
 
   return (
     <div className="stack">
       <div className="rij">
         <label className="veld grow">
-          <span>{nl.roosterVan}</span>
+          <span>{txt('Rooster van')}</span>
           <select value={wie} onChange={(e) => setWie(e.target.value)}>
-            <option value="allen">{nl.heleKlas}</option>
+            <option value="allen">{txt('Hele klas (toon alles)')}</option>
             {data.leerlingen.map((l) => (
               <option key={l.id} value={l.id}>
                 {l.naam}
@@ -76,7 +76,7 @@ export default function Rooster() {
           </select>
         </label>
         <button className="btn ghost klein" onClick={() => setPrinten(true)}>
-          🖨️ {nl.printen}
+          🖨️ {txt('Printen')}
         </button>
       </div>
 
@@ -91,7 +91,7 @@ export default function Rooster() {
       {dagbericht && <p className="dagbericht">{dagbericht.bericht}</p>}
 
       {zichtbaar.length === 0 ? (
-        <p className="note">{nl.leegDag}</p>
+        <p className="note">{txt('Geen activiteiten op deze dag.')}</p>
       ) : (
         <ol className="activiteiten" data-stijl={thema.kaartstijl || 'kaart'}>
           {zichtbaar.map((a) => {
@@ -104,7 +104,7 @@ export default function Rooster() {
                   {toon.einde && <span>t/m {a.eind}</span>}
                 </div>
                 <div className="act-body">
-                  {nuBezig && <span className="nu-badge">▶ {thema.nu_label || nl.nuBezig}</span>}
+                  {nuBezig && <span className="nu-badge">▶ {thema.nu_label || txt('Nu bezig')}</span>}
                   <strong>
                     {toon.emoji ? `${a.emoji || emoji(a.titel)} ` : ''}
                     {a.titel}
@@ -121,20 +121,20 @@ export default function Rooster() {
 
       {persoonInfo && (
         <div className="card info-kaart">
-          <strong>🎭 {wie === eigen ? nl.jouwInfo : `${nl.infoVan} ${naam[wie]}`}</strong>
+          <strong>🎭 {wie === eigen ? txt('Jouw persoonlijke info') : `${txt('Info van')} ${naam[wie]}`}</strong>
           <p>{persoonInfo}</p>
         </div>
       )}
 
-      {fout && <p className="note">{nl.verversFout}</p>}
+      {fout && <p className="note">{txt('Verversen lukt nu niet. Je ziet de laatst geladen gegevens.')}</p>}
       {laatst && (
         <p className="note">
-          {nl.laatstBijgewerkt}: {tijdFormat.format(laatst)}
+          {txt('Laatst bijgewerkt')}: {tijdFormat.format(laatst)}
         </p>
       )}
 
       {infoPopup && (
-        <Modal titel={`🎭 ${nl.jouwInfo}`} onSluit={() => setInfoPopup(false)}>
+        <Modal titel={`🎭 ${txt('Jouw persoonlijke info')}`} onSluit={() => setInfoPopup(false)}>
           <p>{data.mijn_info}</p>
         </Modal>
       )}

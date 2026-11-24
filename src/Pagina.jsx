@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { rpc } from './api.js'
 import { afbeeldingUrl } from './config.js'
 import { useData } from './data.jsx'
-import { nl } from './strings.js'
 import TekstMetLinks, { LinkKnop } from './TekstMetLinks.jsx'
+import { txt } from './t.js'
 
 // Renders the blocks of the class page. Text is plain text; links ask before opening; images come from the class folder.
 export function PaginaBlokken({ blokken }) {
@@ -57,8 +57,8 @@ export default function Pagina({ sessie }) {
     }
   }, [sessie.token, data.versie])
 
-  if (!blokken) return <p className="note">{fout ? nl.laadFout : nl.laden}</p>
-  if (blokken.length === 0) return <p className="note">{nl.leegPagina}</p>
+  if (!blokken) return <p className="note">{fout ? txt('Er ging iets mis. Controleer je verbinding en probeer het opnieuw.') : txt('Laden…')}</p>
+  if (blokken.length === 0) return <p className="note">{txt('Deze pagina is nog leeg.')}</p>
   return (
     <div className="card">
       <PaginaBlokken blokken={blokken} />

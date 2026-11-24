@@ -95,7 +95,7 @@ The app is deployed as static assets behind a Cloudflare Worker.
 The Cloudflare configuration lives in `wrangler.jsonc` and points to the `dist/` output directory:
 
 - `npm run build` creates the frontend bundle
-- `npx wrangler preview` creates a Worker preview
+- `npx wrangler versions upload` creates a Worker preview
 - `npx wrangler deploy` publishes the built assets to the configured Worker
 
 This repository does not run a separate backend service in the Node app itself; the server-side behavior is provided by Supabase and Cloudflare/Wrangler, with the frontend compiled to static files.
@@ -138,3 +138,8 @@ When changing the app, think in terms of the same boundaries used in the code:
 - deployment and environment changes belong under `wrangler.jsonc`, `CONFIGURATION.md` and related docs
 
 The repository currently has no dedicated lint or test script in `package.json`; the project relies on building and direct verification of the relevant behavior in the running app.
+
+
+## Texts
+
+Every text shown to people lives in `src/teksten.js`. Components call `txt('Default text')` from `src/t.js`; the default text is the lookup key, and `teksten.js` holds the (editable) version. Texts with variables use `{name}` placeholders, for example `txt('Dag {dag}', { dag })`. `scripts/teksten.mjs` checks that every `txt()` call has an entry in `teksten.js` and can add missing ones (`npm run teksten:check`, `npm run teksten:sync`). Do not put user-visible text directly in components. Notification texts are the one exception (see `supabase/functions/push/index.ts`).

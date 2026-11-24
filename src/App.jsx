@@ -4,7 +4,6 @@ import { rpc, setBijOngeldigeSessie } from './api.js'
 import { laadSessie, bewaarSessie, wisAlles } from './session.js'
 import { DataProvider, useData } from './data.jsx'
 import { herregistreer, pushOndersteund, zetMeldingenUit } from './push.js'
-import { nl } from './strings.js'
 import { ThemaProvider, useThema } from './themaContext.jsx'
 import { TAB_STANDAARD, tabsVan } from './themaModel.js'
 import { useAppIdentiteit } from './pwaIdentiteit.js'
@@ -26,6 +25,7 @@ import Welkom, { IcoonHint, InstallTip, InstallUitleg } from './Welkom.jsx'
 import { useVoorkeur } from './voorkeur.js'
 import { analyticsConfigured, startAnalytics, stopAnalytics, useAnalyticsToestemming } from './analytics.js'
 import { AnalyticsConsentPrompt, AnalyticsTabWeergave } from './AnalyticsConsent.jsx'
+import { txt } from './t.js'
 
 // The Root panel (and the Supabase login library) is only downloaded on /root.
 const RootApp = lazy(() => import('./root/RootApp.jsx'))
@@ -65,15 +65,15 @@ function Inhoud() {
       <main className="page">
         <Kop />
         <div className="card stack">
-          <h2>{nl.setupTitel}</h2>
-          <p>{nl.setupTekst}</p>
+          <h2>{txt('Bijna klaar')}</h2>
+          <p>{txt('De website draait, maar de database is nog niet gekoppeld. Zet VITE_SUPABASE_URL en VITE_SUPABASE_KEY in je .env-bestand (lokaal) of in de build-variabelen van je hosting en bouw de app opnieuw.')}</p>
         </div>
       </main>
     )
   }
   if (location.pathname.startsWith('/root')) {
     return (
-      <Suspense fallback={<main className="page"><p className="note">{nl.laden}</p></main>}>
+      <Suspense fallback={<main className="page"><p className="note">{txt('Laden…')}</p></main>}>
         <RootApp />
       </Suspense>
     )
@@ -121,7 +121,7 @@ function LeerlingApp() {
 
   const offline = !online && (
     <p className="banner" role="status">
-      {nl.offlineBanner}
+      {txt('Je bent offline. Je ziet de laatst geladen gegevens.')}
     </p>
   )
 
@@ -192,7 +192,7 @@ function Shell({ sessie, update, uitloggen, offline, klas }) {
   if (!data) {
     return (
       <Kader klas={klas} thema={thema} onUitloggen={uitloggen} offline={offline}>
-        <p className="note">{fout ? nl.laadFout : nl.laden}</p>
+        <p className="note">{fout ? txt('Er ging iets mis. Controleer je verbinding en probeer het opnieuw.') : txt('Laden…')}</p>
       </Kader>
     )
   }
@@ -213,7 +213,7 @@ function Shell({ sessie, update, uitloggen, offline, klas }) {
     )
   }
 
-  const tabs = [...tabsVan(thema, TAB_STANDAARD, { stand: data.instellingen.stand_tab_forceer }), ...(sessie.rol === 'beheer' ? [['beheer', nl.tabBeheer]] : [])]
+  const tabs = [...tabsVan(thema, TAB_STANDAARD, { stand: data.instellingen.stand_tab_forceer }), ...(sessie.rol === 'beheer' ? [['beheer', txt('Beheer')]] : [])]
   const actief = tabs.some(([id]) => id === tab) ? tab : tabs[0][0]
 
   return (
@@ -221,14 +221,14 @@ function Shell({ sessie, update, uitloggen, offline, klas }) {
       <InstallTip />
       <div className="rij">
         <button className="btn ghost klein" onClick={() => setInstellingen(true)}>
-          ⚙️ Instellingen
+          {txt('⚙️ Instellingen')}
         </button>
         <button className="btn ghost klein" onClick={() => setMeldingen(true)}>
-          🔔 {nl.meldingen}
+          🔔 {txt('Meldingen')}
         </button>
         {leerlingId && (
-          <button className="btn ghost klein" onClick={() => window.confirm(nl.zekerAnderPersoon) && setKiesOpnieuw(true)}>
-            {nl.anderPersoon}
+          <button className="btn ghost klein" onClick={() => window.confirm(txt('Weet je zeker dat je een andere naam wilt kiezen?')) && setKiesOpnieuw(true)}>
+            {txt('Ik ben iemand anders')}
           </button>
         )}
       </div>
@@ -250,10 +250,10 @@ function Shell({ sessie, update, uitloggen, offline, klas }) {
         {actief === 'beheer' && sessie.rol === 'beheer' && <Beheer sessie={sessie} />}
       </div>
 
-      <Welkom sessie={sessie} leerlingId={leerlingId} />
+      <Welkom sessie={sessie} leerlingId={leerlingId} icoon={opgeslagen.icoon} naam={klas ? klas.weergavenaam || klas.naam : ''} />
       <IcoonHint icoon={opgeslagen.icoon} slug={sessie.klas?.slug} />
       {instellingen && <Instellingen sessie={sessie} leerlingId={leerlingId} uitloggen={uitloggen} onSluit={() => setInstellingen(false)} onMeldingen={() => { setInstellingen(false); setMeldingen(true) }} onInstall={() => { setInstellingen(false); setInstallUitleg(true) }} />}
-      {installUitleg && <InstallUitleg onSluit={() => setInstallUitleg(false)} />}
+      {installUitleg && <InstallUitleg icoon={opgeslagen.icoon} naam={klas ? klas.weergavenaam || klas.naam : ''} onSluit={() => setInstallUitleg(false)} />}
 
       {meldingen && <Meldingen sessie={sessie} leerlingId={leerlingId} onSluit={() => setMeldingen(false)} />}
     </Kader>

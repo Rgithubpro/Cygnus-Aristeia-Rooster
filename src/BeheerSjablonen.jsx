@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { rpc } from './api.js'
 import { useData } from './data.jsx'
-import { nl } from './strings.js'
 import { dagDatum, dagLabel, emoji } from './util.js'
+import { foutTekst, txt } from './t.js'
 
 // Example roosters made by the organisers. Pick parts (or a whole example), then only add your students.
 export default function BeheerSjablonen({ sessie }) {
@@ -23,57 +23,65 @@ export default function BeheerSjablonen({ sessie }) {
     setBericht('')
     try {
       const r = await rpc('sjabloon_gebruiken', { p_token: sessie.token, p_item_ids: ids, p_iedereen: iedereen })
-      setBericht(`${r.toegevoegd} activiteit(en) toegevoegd. Je vindt ze hieronder; voeg daar je leerlingen toe.`)
+      setBericht(txt('{toegevoegd} activiteit(en) toegevoegd. Je vindt ze hieronder; voeg daar je leerlingen toe.', { toegevoegd: r.toegevoegd }))
       setGekozen([])
       await laad()
       await ververs()
     } catch (e) {
-      setFout(nl.fouten[e.code] || nl.laadFout)
+      setFout(foutTekst(e.code) || txt('Er ging iets mis. Controleer je verbinding en probeer het opnieuw.'))
     }
   }
 
   return (
     <details className="card stack sjablonen" open={lijst.some((j) => j.items.some((i) => !i.gebruikt))}>
-      <summary><strong>📋 Voorbeeldroosters van de organisatie ({lijst.length})</strong></summary>
-      <p className="note">Kies de onderdelen die je wilt gebruiken. Ze worden gekopieerd naar jouw klas, daarna kun je ze aanpassen en je leerlingen toevoegen.</p>
+      <summary>
+        <strong>{txt('📋 Voorbeeldroosters van de organisatie (')}{lijst.length})</strong>
+      </summary>
+      <p className="note">{txt('Kies de onderdelen die je wilt gebruiken. Ze worden gekopieerd naar jouw klas, daarna kun je ze aanpassen en je leerlingen toevoegen.')}</p>
       <label className="vink">
         <input type="checkbox" checked={iedereen} onChange={(e) => setIedereen(e.target.checked)} />
-        <span>Meteen alle leerlingen van mijn klas bij de onderdelen zetten</span>
+        <span>{txt('Meteen alle leerlingen van mijn klas bij de onderdelen zetten')}</span>
       </label>
+
       {lijst.map((j) => {
         const nieuw = j.items.filter((i) => !i.gebruikt)
+        const mijn = nieuw.filter((i) => gekozen.includes(i.id))
         return (
-          <div key={j.id} className="stack klein-gap sjabloon">
-            <strong>{j.naam}</strong>
-            {j.beschrijving && <span className="note">{j.beschrijving}</span>}
-            <ul className="vinklijst">
+          <section key={j.id} className="sjabloon stack klein-gap">
+            <div>
+              <strong>{j.naam}</strong>
+              {j.beschrijving && <p className="note">{j.beschrijving}</p>}
+            </div>
+            <ul className="sj-lijst">
               {j.items.map((i) => (
                 <li key={i.id}>
-                  <label>
+                  <label className={`sj-item${i.gebruikt ? ' gebruikt' : ''}`}>
                     <input type="checkbox" disabled={i.gebruikt} checked={i.gebruikt || gekozen.includes(i.id)} onChange={() => wissel(i.id)} />
-                    <span>
-                      {i.emoji || emoji(i.titel)} {i.titel}{' '}
+                    <span className="sj-tekst">
+                      <strong>
+                        {i.emoji || emoji(i.titel)} {i.titel}
+                      </strong>
                       <small className="note">
                         {dagLabel(dagDatum(data.instellingen, i.dag), i.dag)}, {i.start} – {i.eind}
                         {i.locatie ? `, ${i.locatie}` : ''}
-                        {i.gebruikt ? ' (al toegevoegd)' : ''}
                       </small>
                     </span>
+                    {i.gebruikt && <span className="tag">{txt('Al toegevoegd')}</span>}
                   </label>
                 </li>
               ))}
             </ul>
-            <div className="rij">
-              <button className="btn klein" disabled={nieuw.length === 0} onClick={() => voegToe(nieuw.map((i) => i.id))}>
-                Alles toevoegen ({nieuw.length})
+            <div className="sj-acties">
+              <button className="btn ghost" disabled={nieuw.length === 0} onClick={() => voegToe(nieuw.map((i) => i.id))}>
+                {txt('Alles toevoegen (')}{nieuw.length})
+              </button>
+              <button className="btn" disabled={mijn.length === 0} onClick={() => voegToe(mijn.map((i) => i.id))}>
+                {txt('Geselecteerde toevoegen (')}{mijn.length})
               </button>
             </div>
-          </div>
+          </section>
         )
       })}
-      <button className="btn" disabled={gekozen.length === 0} onClick={() => voegToe(gekozen)}>
-        Geselecteerde toevoegen ({gekozen.length})
-      </button>
       {bericht && <p className="ok" role="status">✓ {bericht}</p>}
       {fout && <p className="fout">{fout}</p>}
     </details>

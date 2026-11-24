@@ -5,16 +5,17 @@ import { Decoratie, Identiteit, Kleuren, Stijl, Tabs, Weergave, leesbaarheid } f
 import PaginaEditor from './PaginaEditor.jsx'
 import AppIcoon from './AppIcoon.jsx'
 import { bouwIcoonSet, icoonPaden, laadBitmap } from './icoon.js'
+import { txt } from '../t.js'
 
 const SECTIES = [
-  ['identiteit', 'Identiteit'],
+  ['identiteit', txt('Identiteit')],
   ['icoon', 'App-icoon'],
-  ['kleuren', 'Kleuren'],
-  ['stijl', 'Stijl'],
-  ['weergave', 'Weergave'],
-  ['decoratie', 'Decoratie'],
-  ['tabs', 'Tabs'],
-  ['pagina', 'Klaspagina'],
+  ['kleuren', txt('Kleuren')],
+  ['stijl', txt('Stijl')],
+  ['weergave', txt('Weergave')],
+  ['decoratie', txt('Decoratie')],
+  ['tabs', txt('Tabs')],
+  ['pagina', txt('Klaspagina')],
 ]
 const BEELDEN = ['logo', 'banner', 'mascotte']
 
@@ -34,11 +35,11 @@ function normaal(v) {
 }
 const sleutel = (naam, thema) => JSON.stringify([String(naam || '').trim(), normaal(thema || {})])
 const FOUTEN = {
-  ongeldige_kleur: 'Een van de kleuren is ongeldig.',
-  ongeldig_pad: 'Een afbeelding hoort niet bij deze klas.',
-  thema_te_groot: 'Er zijn te veel instellingen gekozen.',
-  ongeldige_keuze: 'Een van de keuzes is ongeldig.',
-  ongeldige_emoji: 'Een emoji is ongeldig.',
+  ongeldige_kleur: txt('Een van de kleuren is ongeldig.'),
+  ongeldig_pad: txt('Een afbeelding hoort niet bij deze klas.'),
+  thema_te_groot: txt('Er zijn te veel instellingen gekozen.'),
+  ongeldige_keuze: txt('Een van de keuzes is ongeldig.'),
+  ongeldige_emoji: txt('Een emoji is ongeldig.'),
 }
 
 // The whole class customization in one place. In the class admin's own app the whole page previews edits live (`live`).
@@ -79,7 +80,7 @@ export default function KlasEditor({ klas, opslaanThema, opslaanPagina, paginaLa
   const l = leesbaarheid(t)
 
   async function bewaar() {
-    if (!l.ok) return setFout('Je tekstkleur is slecht leesbaar. Pas de kleuren aan (tab Kleuren).')
+    if (!l.ok) return setFout(txt('Je tekstkleur is slecht leesbaar. Pas de kleuren aan (tab Kleuren).'))
     setBezig(true)
     setFout('')
     setOk(false)
@@ -117,7 +118,7 @@ export default function KlasEditor({ klas, opslaanThema, opslaanPagina, paginaLa
       setOk(true)
     } catch (e) {
       nieuw.forEach((p) => verwijder(p).catch(() => {}))
-      setFout(e.message === 'geen_icoonbron' ? 'Kies eerst een logo of een eigen afbeelding voor het app-icoon.' : e.message === 'anoniem_uit' ? 'Uploaden staat nog niet aan. Vraag de organisatie om anonieme logins aan te zetten.' : FOUTEN[e.code] || 'Opslaan is niet gelukt. Probeer het opnieuw.')
+      setFout(e.message === 'geen_icoonbron' ? txt('Kies eerst een logo of een eigen afbeelding voor het app-icoon.') : e.message === 'anoniem_uit' ? txt('Uploaden staat nog niet aan. Vraag de organisatie om anonieme logins aan te zetten.') : FOUTEN[e.code] || txt('Opslaan is niet gelukt. Probeer het opnieuw.'))
     }
     setBezig(false)
   }
@@ -130,7 +131,7 @@ export default function KlasEditor({ klas, opslaanThema, opslaanPagina, paginaLa
     setFout('')
   }
   const reset = () => {
-    if (!window.confirm('Alles terugzetten naar de standaardstijl? (Je moet daarna nog op Opslaan drukken.)')) return
+    if (!window.confirm(txt('Alles terugzetten naar de standaardstijl? (Je moet daarna nog op Opslaan drukken.)'))) return
     setNaam('')
     setT({})
     setBestanden({})
@@ -145,7 +146,7 @@ export default function KlasEditor({ klas, opslaanThema, opslaanPagina, paginaLa
           </button>
         ))}
       </div>
-      {live && <p className="note">Wat je hier verandert, zie je meteen in de hele app. Het wordt pas bewaard (en door je klas gezien) als je op Opslaan drukt.</p>}
+      {live && <p className="note">{txt('Wat je hier verandert, zie je meteen in de hele app. Het wordt pas bewaard (en door je klas gezien) als je op Opslaan drukt.')}</p>}
 
       {sectie === 'identiteit' && <Identiteit t={t} zet={zet} naam={naam} setNaam={setNaam} bestanden={bestanden} zetBestand={zetBestand} />}
       {sectie === 'icoon' && <AppIcoon t={t} bestandLogo={bestanden.logo} icoon={icoon} zetIcoon={zetIcoon} />}
@@ -158,11 +159,11 @@ export default function KlasEditor({ klas, opslaanThema, opslaanPagina, paginaLa
 
       {sectie !== 'pagina' && (
         <div className="opslaanbalk">
-          <span className="note">{gewijzigd ? 'Niet-opgeslagen wijzigingen' : ok ? '✓ Opgeslagen' : 'Alles is opgeslagen'}</span>
+          <span className="note">{gewijzigd ? txt('Niet-opgeslagen wijzigingen') : ok ? txt('✓ Opgeslagen') : txt('Alles is opgeslagen')}</span>
           <span className="rij">
-            <button type="button" className="btn ghost klein" onClick={reset}>Standaard</button>
-            <button type="button" className="btn ghost klein" disabled={!gewijzigd} onClick={terug}>Ongedaan maken</button>
-            <button type="button" className="btn" disabled={bezig || !gewijzigd} onClick={bewaar}>Opslaan</button>
+            <button type="button" className="btn ghost klein" onClick={reset}>{txt('Standaard')}</button>
+            <button type="button" className="btn ghost klein" disabled={!gewijzigd} onClick={terug}>{txt('Ongedaan maken')}</button>
+            <button type="button" className="btn" disabled={bezig || !gewijzigd} onClick={bewaar}>{txt('Opslaan')}</button>
           </span>
         </div>
       )}

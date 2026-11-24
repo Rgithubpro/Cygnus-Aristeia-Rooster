@@ -1,7 +1,8 @@
 import { useId } from 'react'
+import { txt } from './t.js'
 
 // A nicely styled "choose a picture" button (the real file input is hidden but stays accessible).
-export default function BestandsKnop({ onBestand, bestand, label = 'Kies een afbeelding', accept = 'image/jpeg,image/png,image/webp' }) {
+export default function BestandsKnop({ onBestand, bestand, label = txt('Kies een afbeelding'), accept = 'image/jpeg,image/png,image/webp' }) {
   const id = useId()
   return (
     <div className="bestand">
@@ -18,7 +19,7 @@ export default function BestandsKnop({ onBestand, bestand, label = 'Kies een afb
       <label htmlFor={id} className="btn ghost bestand-knop">
         📷 {label}
       </label>
-      <span className="note bestand-naam">{bestand ? bestand.name : 'Nog niets gekozen'}</span>
+      <span className="note bestand-naam">{bestand ? bestand.name : txt('Nog niets gekozen')}</span>
     </div>
   )
 }

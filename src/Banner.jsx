@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { nl } from './strings.js'
+import { txt } from './t.js'
 
 // System message set by Root (for example maintenance). Can be closed for this visit.
 export default function Banner({ banner }) {
@@ -14,7 +14,7 @@ export default function Banner({ banner }) {
       </div>
       <button
         className="btn ghost klein"
-        aria-label={nl.sluitBanner}
+        aria-label={txt('Melding sluiten')}
         onClick={() => {
           sessionStorage.setItem(sleutel, '1')
           setDicht(true)

@@ -1,4 +1,5 @@
 import { afbeeldingUrl } from './config.js'
+import { txt } from './t.js'
 
 // ---------- colours ----------
 const rgbVan = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16))
@@ -26,34 +27,34 @@ function leesbaar(accent, achtergronden, tekst) {
 
 // Complete palettes (light and dark variant each). "standaard" keeps the app's own colours and only applies an accent.
 export const PALETTEN = {
-  standaard: { label: 'Standaard' },
+  standaard: { label: txt('Standaard') },
   zee: {
-    label: 'Zee',
+    label: txt('Zee'),
     licht: { bg: '#e8f4fb', kaart: '#ffffff', tekst: '#0b2a3d', accent: '#0b78b8', accent2: '#19a597' },
     donker: { bg: '#07202e', kaart: '#0d2f43', tekst: '#e6f3fa', accent: '#4fc3f7', accent2: '#4dd6c4' },
   },
   bos: {
-    label: 'Bos',
+    label: txt('Bos'),
     licht: { bg: '#eaf4ec', kaart: '#ffffff', tekst: '#12301c', accent: '#1f7a3f', accent2: '#b07a00' },
     donker: { bg: '#0c1f14', kaart: '#12301f', tekst: '#e4f2e8', accent: '#62d394', accent2: '#ffc46b' },
   },
   zonsondergang: {
-    label: 'Zonsondergang',
+    label: txt('Zonsondergang'),
     licht: { bg: '#fdf0e6', kaart: '#ffffff', tekst: '#3a1d12', accent: '#c94a14', accent2: '#c2185b' },
     donker: { bg: '#2a130c', kaart: '#3b1d12', tekst: '#ffeadd', accent: '#ff8a5c', accent2: '#ff6fa5' },
   },
   roze: {
-    label: 'Roze',
+    label: txt('Roze'),
     licht: { bg: '#fdeef5', kaart: '#ffffff', tekst: '#3d1030', accent: '#c2185b', accent2: '#7b1fa2' },
     donker: { bg: '#2a0d1f', kaart: '#3b1430', tekst: '#ffe6f2', accent: '#ff6fa5', accent2: '#c792ff' },
   },
   goud: {
-    label: 'Goud',
+    label: txt('Goud'),
     licht: { bg: '#fbf6e6', kaart: '#fffdf5', tekst: '#2f2508', accent: '#8f6700', accent2: '#6d4c41' },
     donker: { bg: '#1f1a08', kaart: '#2c2510', tekst: '#fff3cf', accent: '#ffd54a', accent2: '#ffb74d' },
   },
   nacht: {
-    label: 'Nacht',
+    label: txt('Nacht'),
     licht: { bg: '#0b1020', kaart: '#141b33', tekst: '#eef1fb', accent: '#8fa8ff', accent2: '#ff7ab8' },
     donker: { bg: '#0b1020', kaart: '#141b33', tekst: '#eef1fb', accent: '#8fa8ff', accent2: '#ff7ab8' },
   },
@@ -63,22 +64,22 @@ export const PALETTEN = {
     donker: { bg: '#111111', kaart: '#1b1b1b', tekst: '#eeeeee', accent: '#dddddd', accent2: '#999999' },
   },
   neon: {
-    label: 'Neon',
+    label: txt('Neon'),
     licht: { bg: '#0a0a14', kaart: '#14142a', tekst: '#f4f4ff', accent: '#00f5d4', accent2: '#ff3cac' },
     donker: { bg: '#0a0a14', kaart: '#14142a', tekst: '#f4f4ff', accent: '#00f5d4', accent2: '#ff3cac' },
   },
-  eigen: { label: 'Eigen kleuren' },
+  eigen: { label: txt('Eigen kleuren') },
 }
 export const PRESET_KLEUREN = ['#2f56d9', '#1f8a4c', '#c98a0b', '#7a3cc4', '#d9534f', '#0e8a9a', '#d6336c', '#4b5563']
 
 // ---------- fonts (system fonts only: instant, offline, no tracking) ----------
 export const FONTS = {
-  systeem: { label: 'Modern', stack: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif' },
-  klassiek: { label: 'Klassiek', stack: '"Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif' },
-  rond: { label: 'Rond en vriendelijk', stack: 'ui-rounded, "SF Pro Rounded", "Varela Round", Nunito, "Trebuchet MS", system-ui, sans-serif' },
-  mono: { label: 'Technisch', stack: 'ui-monospace, "SF Mono", Menlo, Consolas, monospace' },
-  hand: { label: 'Handgeschreven', stack: '"Segoe Print", "Bradley Hand", "Chalkboard SE", "Marker Felt", "Comic Sans MS", cursive' },
-  sterk: { label: 'Dik en sterk', stack: '"Arial Black", Impact, "Helvetica Neue", system-ui, sans-serif' },
+  systeem: { label: txt('Modern'), stack: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif' },
+  klassiek: { label: txt('Klassiek'), stack: '"Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif' },
+  rond: { label: txt('Rond en vriendelijk'), stack: 'ui-rounded, "SF Pro Rounded", "Varela Round", Nunito, "Trebuchet MS", system-ui, sans-serif' },
+  mono: { label: txt('Technisch'), stack: 'ui-monospace, "SF Mono", Menlo, Consolas, monospace' },
+  hand: { label: txt('Handgeschreven'), stack: '"Segoe Print", "Bradley Hand", "Chalkboard SE", "Marker Felt", "Comic Sans MS", cursive' },
+  sterk: { label: txt('Dik en sterk'), stack: '"Arial Black", Impact, "Helvetica Neue", system-ui, sans-serif' },
 }
 
 // ---------- background patterns (built with the class colours) ----------
@@ -170,7 +171,7 @@ export function afbeeldingSrc(thema, sleutel) {
 }
 
 // ---------- tabs ----------
-export const TAB_STANDAARD = { rooster: 'Rooster', info: 'Info', stand: 'Stand', pagina: 'Onze klas' }
+export const TAB_STANDAARD = { rooster: txt('Rooster'), info: txt('Info'), stand: txt('Stand'), pagina: txt('Onze klas') }
 export function tabsVan(thema, labels = TAB_STANDAARD, forceer = {}) {
   const t = thema || {}
   const volgorde = [...(t.tab_volgorde || []), 'rooster', 'info', 'stand', 'pagina'].filter((id, i, a) => a.indexOf(id) === i)

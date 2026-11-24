@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { bijUpdate, pasToe } from './update.js'
-import { nl } from './strings.js'
+import { txt } from './t.js'
 
 export default function UpdateBalk() {
   const [wacht, setWacht] = useState(false)
@@ -8,9 +8,9 @@ export default function UpdateBalk() {
   if (!wacht) return null
   return (
     <div className="update-balk" role="status">
-      <span>{nl.nieuweVersie}</span>
+      <span>{txt('Er is een nieuwe versie van de app.')}</span>
       <button className="btn klein" onClick={pasToe}>
-        {nl.vernieuwen}
+        {txt('Nu vernieuwen')}
       </button>
     </div>
   )

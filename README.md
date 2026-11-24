@@ -1,6 +1,6 @@
-# Cygnus Aristeia Rooster
+# Aristeia
 
-Cygnus Aristeia Rooster is a Dutch-language, mobile-first web app for organizing a two-day school event. It provides class schedules, activities, announcements, standings and optional push notifications. The app is installable as a Progressive Web App (PWA).
+Aristeia is a Dutch-language, mobile-first web app for organizing a two-day school event. It provides class schedules, activities, announcements, standings and optional push notifications. The app is installable as a Progressive Web App (PWA).
 
 ## What it does
 
@@ -56,27 +56,26 @@ Set the frontend environment variables before building; Vite embeds them in the 
 
 ```bash
 npm run build
-npx wrangler preview
+npx wrangler versions upload
 npx wrangler deploy
 ```
 
-`npm run build` creates the `dist/` assets configured in `wrangler.jsonc`. `npx wrangler preview` creates a Cloudflare preview deployment; it is not the local Vite preview server. `npx wrangler deploy` deploys the current build to the Worker configured by Wrangler. Both Wrangler commands require Cloudflare authentication. The `npm run deploy` convenience script also builds first and then deploys.
+`npm run build` creates the `dist/` assets configured in `wrangler.jsonc`. `npx wrangler versions upload` creates a Cloudflare preview deployment; it is not the local Vite preview server. `npx wrangler deploy` deploys the current build to the Worker configured by Wrangler. Both Wrangler commands require Cloudflare authentication. The `npm run deploy` convenience script also builds first and then deploys.
 
 For Cloudflare Workers Builds, configure the `VITE_*` values as build variables in the Cloudflare dashboard. See [CONFIGURATION.md](./CONFIGURATION.md) for Supabase initialization, optional services, secrets and deployment details.
-
-## Load testing
-
-The repository includes a student load-test runner for isolated non-production environments. See [LOAD-TESTING.md](./LOAD-TESTING.md) for setup, safety requirements and usage.
 
 ## Documentation
 
 - [ARCHITECTURE.md](./ARCHITECTURE.md) — project structure, runtime architecture, auth model and deployment boundaries
 - [CONFIGURATION.md](./CONFIGURATION.md) — Supabase setup, environment variables, push notifications, analytics and Cloudflare deployment
 - [CONTRIBUTING.md](./CONTRIBUTING.md) — local workflow and contribution expectations
-- [SECURITY.md](./SECURITY.md) — security model, reporting process and handling of sensitive data
-- [LOAD-TESTING.md](./LOAD-TESTING.md) — safely running the student load test
 - [LICENSE](./LICENSE) — MIT License
 
 ## License
 
 This project is distributed under the MIT License. See [LICENSE](./LICENSE).
+
+
+## Make it your own
+
+To reuse this project for another school or event: set the build variables (see [CONFIGURATION.md](./CONFIGURATION.md)), run `supabase/setup.sql`, then change the app name and texts in `src/teksten.js` and replace the logo and icons. See [CONFIGURATION.md](./CONFIGURATION.md#texts-name-and-branding) for the full list.

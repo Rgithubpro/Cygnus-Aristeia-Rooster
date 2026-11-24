@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { afbeeldingUrl } from './config.js'
-import { nl } from './strings.js'
 import Modal from './Modal.jsx'
 import TekstMetLinks from './TekstMetLinks.jsx'
+import { txt } from './t.js'
 
 export default function BerichtKaart({ b, acties }) {
   const [groot, setGroot] = useState(false)
@@ -11,8 +11,8 @@ export default function BerichtKaart({ b, acties }) {
       <div className="section-head">
         <h3>{b.titel}</h3>
         <span className="rij">
-          {!b.gepubliceerd && <span className="tag">{nl.concept}</span>}
-          {b.globaal && <span className="tag">{nl.voorIedereen}</span>}
+          {!b.gepubliceerd && <span className="tag">{txt('Concept')}</span>}
+          {b.globaal && <span className="tag">{txt('Voor iedereen')}</span>}
         </span>
       </div>
       {b.afbeelding_pad && (

@@ -1,6 +1,6 @@
 import { Component, useEffect, useState } from 'react'
-import { nl } from './strings.js'
 import { logFout } from './logboek.js'
+import { txt } from './t.js'
 
 // If a screen crashes, show a friendly message with a reload button instead of a white page.
 export class FoutGrens extends Component {
@@ -17,10 +17,10 @@ export class FoutGrens extends Component {
     return (
       <main className="page">
         <div className="card stack">
-          <h2>{nl.crashTitel}</h2>
-          <p>{nl.crashTekst}</p>
+          <h2>{txt('Oeps, er ging iets mis')}</h2>
+          <p>{txt('De app kon niet verder. Laad de pagina opnieuw. Je blijft ingelogd.')}</p>
           <button className="btn" onClick={() => location.reload()}>
-            {nl.opnieuwLaden}
+            {txt('Opnieuw laden')}
           </button>
         </div>
       </main>
@@ -35,7 +35,7 @@ export function FoutVanger() {
     const op = (e) => {
       if (e.reason?.message === 'sessie_ongeldig') return // handled by the login screen
       logFout(e.reason?.message || 'onbekende fout')
-      setBericht(nl.foutMelding)
+      setBericht(txt('Er ging iets mis. Probeer het opnieuw.'))
       clearTimeout(op.t)
       op.t = setTimeout(() => setBericht(''), 6000)
     }

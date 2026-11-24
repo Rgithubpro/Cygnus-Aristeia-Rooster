@@ -5,5 +5,3 @@ dist
 .env*
 !.env.example
 .DS_Store
-load-test-participants.json
-load-test-fixtures/

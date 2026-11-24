@@ -1,6 +1,6 @@
 import Mark from './Mark.jsx'
-import { nl } from './strings.js'
 import { afbeeldingSrc, toonVan } from './themaModel.js'
+import { txt } from './t.js'
 
 // Page header: class logo (or the Cygnus swan), name, slogan, optional banner image. All of it is customizable.
 export default function Kop({ klas, thema = {}, onUitloggen }) {
@@ -12,8 +12,8 @@ export default function Kop({ klas, thema = {}, onUitloggen }) {
   const groot = stijl !== 'compact'
   const grootte = groot ? 72 : 44
 
-  const naam = klas ? thema._naam ?? (klas.weergavenaam || klas.naam) : nl.title
-  const sub = toon.slogan && thema.slogan ? thema.slogan : klas && toon.appnaam ? nl.title : klas ? '' : nl.tagline
+  const naam = klas ? thema._naam ?? (klas.weergavenaam || klas.naam) : txt('Aristeia')
+  const sub = toon.slogan && thema.slogan ? thema.slogan : klas && toon.appnaam ? txt('Aristeia') : klas ? '' : txt('Jouw rooster voor de klassenstrijd.')
 
   let beeld = null
   if (toon.logo) {
@@ -31,7 +31,7 @@ export default function Kop({ klas, thema = {}, onUitloggen }) {
       </div>
       {onUitloggen && (
         <button className="btn ghost klein" onClick={onUitloggen}>
-          {nl.uitloggen}
+          {txt('Uitloggen')}
         </button>
       )}
     </header>

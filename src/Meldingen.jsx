@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { nl } from './strings.js'
 import { pushVersturen } from './api.js'
 import { isIos, meldingenStatus, pushOndersteund, zetMeldingenAan, zetMeldingenUit } from './push.js'
 import Modal from './Modal.jsx'
 import { pushGeconfigureerd } from './config.js'
+import { txt } from './t.js'
 
 export default function Meldingen({ sessie, leerlingId, onSluit }) {
   const [status, setStatus] = useState(null) // null = still checking
@@ -26,9 +26,9 @@ export default function Meldingen({ sessie, leerlingId, onSluit }) {
     setFout('')
     try {
       const ok = await zetMeldingenAan(sessie.token)
-      if (!ok) setFout(nl.meldingenGeweigerd)
+      if (!ok) setFout(txt('Meldingen zijn geblokkeerd in je browser. Sta ze toe in de instellingen van je browser of telefoon.'))
     } catch {
-      setFout(nl.laadFout)
+      setFout(txt('Er ging iets mis. Controleer je verbinding en probeer het opnieuw.'))
     }
     await ververs()
     setBezig(false)
@@ -46,38 +46,38 @@ export default function Meldingen({ sessie, leerlingId, onSluit }) {
     setTest('')
     try {
       const r = await pushVersturen({ actie: 'test', token: sessie.token })
-      if (r.apparaten === 0) setTest(nl.testGeenApparaat)
-      else if (r.verstuurd > 0) setTest(`${nl.testVerstuurd} (${r.verstuurd}/${r.apparaten})`)
-      else setTest(`${nl.testMislukt} ${Object.keys(r.fouten || {}).join(', ')}`)
+      if (r.apparaten === 0) setTest(txt('Dit apparaat staat nog niet bij de server. Zet meldingen eerst uit en weer aan.'))
+      else if (r.verstuurd > 0) setTest(`${txt('Testmelding verstuurd, kijk op je scherm.')} (${r.verstuurd}/${r.apparaten})`)
+      else setTest(`${txt('De melding is niet aangekomen. Foutcodes:')} ${Object.keys(r.fouten || {}).join(', ')}`)
     } catch (e) {
-      setTest(`${nl.testFout} (${e.message})`)
+      setTest(`${txt('Testen is niet gelukt.')} (${e.message})`)
     }
     setBezig(false)
   }
 
   let inhoud
   if (!pushGeconfigureerd()) {
-    inhoud = <p className="note">{nl.meldingenNietBeschikbaar}</p>
+    inhoud = <p className="note">{txt('Meldingen zijn niet beschikbaar op deze server.')}</p>
   } else if (!pushOndersteund()) {
     inhoud = (
       <div className="stack">
-        <strong>{nl.installeerTitel}</strong>
-        <p>{nl.installeerUitleg}</p>
-        <p className="note">{isIos() ? nl.installeerIos : nl.installeerAndroid}</p>
+        <strong>{txt('Zet de app op je beginscherm')}</strong>
+        <p>{txt('Om meldingen te ontvangen moet je Aristeia als app op je telefoon zetten.')}</p>
+        <p className="note">{isIos() ? txt('iPhone / iPad: tik op het deel-icoon onderin je scherm, kies "Zet op beginscherm" en open de app daarna vanaf je beginscherm.') : txt('Android: tik op de drie puntjes rechtsboven, kies "App installeren" en open de app daarna vanaf je beginscherm.')}</p>
       </div>
     )
   } else if (!leerlingId) {
-    inhoud = <p className="note">{nl.meldingenKiesNaam}</p>
+    inhoud = <p className="note">{txt('Kies eerst wie je bent.')}</p>
   } else if (!status) {
-    inhoud = <p className="note">{nl.laden}</p>
+    inhoud = <p className="note">{txt('Laden…')}</p>
   } else if (status.toegestaan === 'denied') {
-    inhoud = <p className="fout">{nl.meldingenGeweigerd}</p>
+    inhoud = <p className="fout">{txt('Meldingen zijn geblokkeerd in je browser. Sta ze toe in de instellingen van je browser of telefoon.')}</p>
   } else if (status.aan) {
     inhoud = (
       <>
-        <p className="ok">✓ {nl.meldingenAan}</p>
+        <p className="ok">✓ {txt('Meldingen staan aan op dit apparaat.')}</p>
         <button className="btn" disabled={bezig} onClick={testMelding}>
-          {nl.testMelding}
+          {txt('Stuur een testmelding')}
         </button>
         {test && (
           <p className="note" role="status">
@@ -85,21 +85,21 @@ export default function Meldingen({ sessie, leerlingId, onSluit }) {
           </p>
         )}
         <button className="btn danger" disabled={bezig} onClick={uit}>
-          {nl.meldingenZetUit}
+          {txt('Meldingen uitzetten')}
         </button>
       </>
     )
   } else {
     inhoud = (
       <button className="btn" disabled={bezig} onClick={aan}>
-        {nl.meldingenZetAan}
+        {txt('Meldingen aanzetten')}
       </button>
     )
   }
 
   return (
-    <Modal titel={`🔔 ${nl.meldingenTitel}`} onSluit={onSluit}>
-      <p>{nl.meldingenUitleg}</p>
+    <Modal titel={`🔔 ${txt('Meldingen')}`} onSluit={onSluit}>
+      <p>{txt('Ontvang 5 minuten van tevoren een melding voor elke activiteit die bij jou hoort, ook als de app gesloten is.')}</p>
       {inhoud}
       {fout && <p className="fout">{fout}</p>}
     </Modal>
