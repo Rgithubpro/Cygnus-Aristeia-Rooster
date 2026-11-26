@@ -10,6 +10,7 @@ import BeheerInfo from './BeheerInfo.jsx'
 import BeheerPush from './BeheerPush.jsx'
 import BeheerSjablonen from './BeheerSjablonen.jsx'
 import BeheerKlas from './BeheerKlas.jsx'
+import BeheerHulp, { TIPS } from './BeheerHulp.jsx'
 import { stuurBeheerPagina, useAnalyticsToestemming } from './analytics.js'
 import { txt } from './t.js'
 
@@ -39,20 +40,35 @@ function BeheerWelkom() {
   return (
     <Modal titel={txt('👋 Welkom, beheerder!')} onSluit={sluit}>
       <p>{txt('Hier regel je alles voor je klas: de activiteiten en wie meedoet, je leerlingen, berichten, en het uiterlijk van de hele app (kleuren, logo, app-icoon, een eigen klaspagina en meer).')}</p>
-      {WIKI_URL && <p>{txt('Begin met de uitleg en tips op')} {WIKI}.</p>}
-      {WIKI_URL && <a className="btn" href={WIKI_URL} target="_blank" rel="noopener noreferrer">{txt('📖 Open de wiki')}</a>}
+      <p>{txt('Open het tabblad Hulp voor een korte uitleg in vijf stappen.')}</p>
+      {WIKI_URL && <p>{txt('Meer uitleg en tips staan op')} {WIKI}.</p>}
+      <button className="btn" onClick={sluit}>{txt('Begrepen')}</button>
     </Modal>
   )
 }
 
 export default function Beheer({ sessie }) {
-  const [deel, setDeel] = useState('activiteiten')
+  const [deel, setDeel] = useState(() => {
+    try {
+      return localStorage.getItem('ksv.beheer_hulp_gezien') === '1' ? 'activiteiten' : 'hulp'
+    } catch {
+      return 'activiteiten'
+    }
+  })
+  const kies = (d) => {
+    if (d !== 'hulp') {
+      try { localStorage.setItem('ksv.beheer_hulp_gezien', '1') } catch { /* ignore */ }
+    }
+    setDeel(d)
+    window.scrollTo(0, 0)
+  }
   const analyticsToestemming = useAnalyticsToestemming()
   const { ververs } = useData()
   useEffect(() => {
     if (analyticsToestemming === 'granted') stuurBeheerPagina(sessie.klas?.slug, deel)
   }, [analyticsToestemming, deel, sessie.klas?.slug])
   const delen = [
+    ['hulp', txt('Hulp')],
     ['activiteiten', txt('Activiteiten')],
     ['leerlingen', txt('Leerlingen')],
     ['dagberichten', txt('Dagberichten')],
@@ -63,14 +79,22 @@ export default function Beheer({ sessie }) {
   return (
     <div className="stack">
       <BeheerWelkom />
-      {WIKI_URL && <p className="hulp">{txt('📖 Nieuw als beheerder? Lees')} {WIKI} {txt('voor uitleg en hulp om te beginnen.')}</p>}
+      {deel !== 'hulp' && (
+        <p className="hulp">
+          {txt('📖 Nieuw als beheerder? Open het tabblad')}{' '}
+          <button type="button" className="knop-link" onClick={() => kies('hulp')}>{txt('Hulp')}</button>
+          {WIKI_URL && <> {txt('of lees')} {WIKI}.</>}
+        </p>
+      )}
       <div className="segment" role="tablist">
         {delen.map(([id, label]) => (
-          <button key={id} role="tab" aria-selected={deel === id} onClick={() => setDeel(id)}>
+          <button key={id} role="tab" aria-selected={deel === id} onClick={() => kies(id)}>
             {label}
           </button>
         ))}
       </div>
+      {deel === 'hulp' && <BeheerHulp sessie={sessie} ga={kies} />}
+      {deel !== 'hulp' && TIPS[deel]?.()}
       {deel === 'activiteiten' && <Activiteiten sessie={sessie} />}
       {deel === 'leerlingen' && <BeheerLeerlingen sessie={sessie} />}
       {deel === 'dagberichten' && <Dagberichten sessie={sessie} />}
